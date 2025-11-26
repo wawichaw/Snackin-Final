@@ -20,37 +20,37 @@ class BiscuitSeeder extends Seeder
         $biscuits = [
             [
                 'nom_biscuit' => 'Cookie Original',
-                'prix' => 2.00,
+                'prix' => 2.75,
                 'description' => 'Notre biscuit signature',
                 'saveur_id' => $saveurs->where('nom_saveur', 'Original')->first()->id
             ],
             [
                 'nom_biscuit' => 'Cookie Chocolat',
-                'prix' => 2.50,
+                'prix' => 3.45,
                 'description' => 'Biscuit au chocolat noir intense',
                 'saveur_id' => $saveurs->where('nom_saveur', 'Chocolat')->first()->id
             ],
             [
                 'nom_biscuit' => 'Cookie Caramel',
-                'prix' => 2.50,
+                'prix' => 3.45,
                 'description' => 'Biscuit au caramel salé',
                 'saveur_id' => $saveurs->where('nom_saveur', 'Caramel')->first()->id
             ],
             [
                 'nom_biscuit' => 'Cookie Vanille',
-                'prix' => 2.25,
+                'prix' => 3.10,
                 'description' => 'Biscuit à la vanille naturelle',
                 'saveur_id' => $saveurs->where('nom_saveur', 'Vanille')->first()->id
             ],
             [
                 'nom_biscuit' => 'Cookie Smores',
-                'prix' => 3.00,
+                'prix' => 4.15,
                 'description' => 'Biscuit façon smores avec guimauve et chocolat',
                 'saveur_id' => $saveurs->where('nom_saveur', "S'mores")->first()->id
             ],
             [
                 'nom_biscuit' => 'Cookie Oreo',
-                'prix' => 2.75,
+                'prix' => 3.80,
                 'description' => 'Biscuit style Oreo',
                 'saveur_id' => $saveurs->where('nom_saveur', 'Oreo')->first()->id
             ]
