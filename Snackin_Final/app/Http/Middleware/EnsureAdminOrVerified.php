@@ -26,11 +26,8 @@ class EnsureAdminOrVerified
             return $next($request);
         }
 
-        // Pour les autres utilisateurs, vérifier l'email
-        if (!$user->hasVerifiedEmail()) {
-            return redirect()->route('verification.notice');
-        }
-
+        // Previously required email verification for non-admins.
+        // Verification has been disabled for this application: allow authenticated users.
         return $next($request);
     }
 }

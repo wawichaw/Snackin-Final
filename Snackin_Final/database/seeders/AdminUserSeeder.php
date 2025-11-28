@@ -14,18 +14,35 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@snackin.com',
-            'password' => Hash::make('password'),
-            'is_admin' => true,
-        ]);
+        $email = 'admin@snackin.com';
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            User::create([
+                'name' => 'Admin',
+                'email' => $email,
+                'password' => Hash::make('admin'),
+                'is_admin' => true,
+                'role' => User::ADMIN_ROLE ?? 'ADMIN',
+            ]);
+        } else {
+            $user->update([
+                'name' => 'Admin',
+                'password' => Hash::make('admin'),
+                'is_admin' => true,
+                'role' => User::ADMIN_ROLE ?? 'ADMIN',
+            ]);
+        }
         
-        User::create([
-            'name' => 'Utilisateur Test',
-            'email' => 'user@snackin.com',
-            'password' => Hash::make('password'),
-            'is_admin' => false,
-        ]);
+        $uemail = 'user@snackin.com';
+        $user2 = User::where('email', $uemail)->first();
+        if (!$user2) {
+            User::create([
+                'name' => 'Utilisateur Test',
+                'email' => $uemail,
+                'password' => Hash::make('password'),
+                'is_admin' => false,
+                'role' => User::USER_ROLE ?? 'USER',
+            ]);
+        }
     }
 }

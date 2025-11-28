@@ -36,8 +36,8 @@ Route::get('/biscuits/{biscuit}/commentaires/create', [CommentaireController::cl
 Route::post('/biscuits/{biscuit}/commentaires',       [CommentaireController::class, 'store'])->name('biscuits.commentaires.store');
 
 // Gestion admin des commentaires (accès restreint aux administrateurs)
-// Admins peuvent accéder sans vérification email, autres utilisateurs doivent vérifier
-Route::middleware(['auth', 'admin.or.verified'])->group(function () {
+// Email verification disabled - authenticated users can be checked by controller if needed
+Route::middleware(['auth'])->group(function () {
     Route::get('/admin/commentaires', [CommentaireController::class, 'admin'])->name('commentaires.admin');
     Route::get('/admin/commentaires/{commentaire}', [CommentaireController::class, 'showAdmin'])->name('commentaires.show-admin');
     Route::get('/admin/commentaires/{commentaire}/edit', [CommentaireController::class, 'editAdmin'])->name('commentaires.edit-admin');
@@ -47,14 +47,14 @@ Route::middleware(['auth', 'admin.or.verified'])->group(function () {
 });
 
 // Saveurs (CRUD) - Accès restreint aux administrateurs
-// Admins peuvent accéder sans vérification email, autres utilisateurs doivent vérifier
-Route::middleware(['auth', 'admin.or.verified'])->group(function () {
+// Email verification disabled - authenticated users can be checked by controller if needed
+Route::middleware(['auth'])->group(function () {
     Route::resource('saveurs', SaveurController::class);
 });
 
 // Commandes (formulaire public + envoi + page admin)
-// Nécessite authentification ET vérification email
-Route::middleware(['auth', 'verified'])->group(function () {
+// Nécessite uniquement authentification (email verification disabled)
+Route::middleware(['auth'])->group(function () {
 	// affichage du formulaire (doit être connecté et email vérifié)
 	Route::get('/commandes',  [CommandeController::class, 'create'])->name('commandes.create');
 	// soumettre commande
@@ -64,8 +64,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Routes admin pour les commandes (contrôlées côté controller)
-// Admins peuvent accéder sans vérification email, autres utilisateurs doivent vérifier
-Route::middleware(['auth', 'admin.or.verified'])->group(function () {
+// Authenticated users only; controller enforces admin roles where needed
+Route::middleware(['auth'])->group(function () {
     Route::get('/admin/commandes', [CommandeController::class, 'index'])->name('commandes.index'); // liste admin
     Route::get('/admin/commandes/{commande}', [CommandeController::class, 'show'])->name('commandes.show'); // voir commande
     Route::get('/admin/commandes/{commande}/edit', [CommandeController::class, 'edit'])->name('commandes.edit'); // éditer commande
@@ -73,10 +73,11 @@ Route::middleware(['auth', 'admin.or.verified'])->group(function () {
     Route::delete('/admin/commandes/{commande}', [CommandeController::class, 'destroy'])->name('commandes.destroy'); // supprimer
 });
 
-Auth::routes(['verify' => true]);
+// Disable email verification for the app; register/login will work without verifying email
+Auth::routes();
 
-// Route home nécessite authentification et vérification email
-Route::middleware(['auth', 'verified'])->group(function () {
+// Route home nécessite authentification (email verification disabled)
+Route::middleware(['auth'])->group(function () {
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 });
 
@@ -84,3 +85,9 @@ Route::get('/lang/{locale}', [LocalizationController::class, 'index'])->name('la
 Route::get('/debug-lang', function () {
     return view('debug-lang');
 })->name('debug.lang');
+
+// SPA catch-all route: send all remaining requests to the monopage view
+// This should remain at the end so specific routes defined above take precedence.
+Route::get('/{any}', function () {
+    return view('monopage');
+})->where('any', '.*');
