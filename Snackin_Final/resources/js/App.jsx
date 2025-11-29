@@ -1,5 +1,5 @@
 import React from "react";
-import { HashRouter, Routes, Route, Link } from "react-router-dom";
+import { HashRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Landing from "./components/landing/Landing";
 import BiscuitsIndex from "./components/biscuits/BiscuitsIndex";
@@ -17,8 +17,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./components/Home";
 import About from "./components/About";
 import SearchBar from "./components/SearchBar";
-
-import { useNavigate } from "react-router-dom";
 
 function UserMenu() {
     const { user, logout } = useAuth();
@@ -54,11 +52,9 @@ function UserMenu() {
                 className="dropdown-menu dropdown-menu-end shadow"
                 style={{ minWidth: 160 }}
             >
-                {user.role === "ADMIN" && (
-                    <Link to="/admin" className="dropdown-item">
-                        Admin
-                    </Link>
-                )}
+                <Link className="dropdown-item" to="/admin">
+                    Tableau de bord
+                </Link>
                 <button className="dropdown-item" onClick={doLogout}>
                     Se déconnecter
                 </button>
@@ -70,104 +66,121 @@ function UserMenu() {
 export default function App() {
     return (
         <HashRouter>
-            {/* Top navbar - simplified copy of Blade partial styling (Bootstrap classes) */}
-            <nav className="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-                <div className="container">
-                    <a className="navbar-brand fw-bold text-danger" href="#/">
+            {/* Navbar */}
+            <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom mb-4">
+                <div className="container-fluid">
+                    <Link className="navbar-brand" to="/">
                         Snackin
-                    </a>
-                    <div
-                        className="collapse navbar-collapse show"
-                        id="navbarSupportedContent"
+                    </Link>
+
+                    <button
+                        className="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainNavbar"
                     >
-                        <ul className="navbar-nav me-auto mb-2 mb-md-0">
+                        <span className="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div className="collapse navbar-collapse" id="mainNavbar">
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                             <li className="nav-item">
-                                <Link to="/biscuits" className="nav-link">
+                                <Link className="nav-link" to="/biscuits">
                                     Biscuits
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <Link to="/saveurs" className="nav-link">
+                                <Link className="nav-link" to="/saveurs">
                                     Saveurs
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <Link to="/commentaires" className="nav-link">
+                                <Link className="nav-link" to="/commentaires">
                                     Commentaires
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link to="/about" className="nav-link">
-                                    À propos
                                 </Link>
                             </li>
                         </ul>
 
-                        {/* Search bar */}
                         <SearchBar />
-                        <ul className="navbar-nav ms-auto d-flex align-items-center">
+
+                        <ul className="navbar-nav ms-3">
                             <UserMenu />
                         </ul>
                     </div>
                 </div>
             </nav>
 
-            <main className="py-4">
-                <div
-                    className="container"
-                    style={{ maxWidth: 1200, padding: "20px" }}
-                >
-                    <Routes>
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
-                        <Route path="/" element={<Landing />} />
-                        <Route path="/home" element={<Home />} />
-                        <Route path="/about" element={<About />} />
-                        <Route path="/biscuits" element={<BiscuitsIndex />} />
-                        <Route path="/biscuits/:id" element={<BiscuitShow />} />
-                        <Route path="/saveurs" element={<SaveursIndex />} />
-                        <Route
-                            path="/commentaires"
-                            element={<CommentairesPublic />}
-                        />
-                        <Route
-                            path="/commandes/create"
-                            element={<CommandeCreate />}
-                        />
-                        {/* Admin routes (protected) */}
-                        <Route
-                            path="/admin"
-                            element={
-                                <ProtectedRoute adminOnly>
-                                    <AdminDashboard />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/admin/biscuits"
-                            element={
-                                <ProtectedRoute adminOnly>
-                                    <AdminBiscuits />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/admin/saveurs"
-                            element={
-                                <ProtectedRoute adminOnly>
-                                    <AdminSaveurs />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/admin/commandes"
-                            element={
-                                <ProtectedRoute adminOnly>
-                                    <AdminCommandes />
-                                </ProtectedRoute>
-                            }
-                        />
-                    </Routes>
+            {/* Contenu principal */}
+            <main className="container">
+                <div className="row">
+                    <div className="col-12 col-lg-9 mb-4">
+                        <Routes>
+                            <Route path="/" element={<Landing />} />
+                            <Route path="/home" element={<Home />} />
+                            <Route path="/about" element={<About />} />
+
+                            <Route
+                                path="/biscuits"
+                                element={<BiscuitsIndex />}
+                            />
+                            <Route
+                                path="/biscuits/:id"
+                                element={<BiscuitShow />}
+                            />
+
+                            <Route path="/saveurs" element={<SaveursIndex />} />
+
+                            <Route
+                                path="/commentaires"
+                                element={<CommentairesPublic />}
+                            />
+
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
+
+                            <Route
+                                path="/commander"
+                                element={
+                                    <ProtectedRoute>
+                                        <CommandeCreate />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/admin"
+                                element={
+                                    <ProtectedRoute adminOnly>
+                                        <AdminDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/biscuits"
+                                element={
+                                    <ProtectedRoute adminOnly>
+                                        <AdminBiscuits />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/saveurs"
+                                element={
+                                    <ProtectedRoute adminOnly>
+                                        <AdminSaveurs />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/commandes"
+                                element={
+                                    <ProtectedRoute adminOnly>
+                                        <AdminCommandes />
+                                    </ProtectedRoute>
+                                }
+                            />
+                        </Routes>
+                    </div>
                 </div>
             </main>
         </HashRouter>

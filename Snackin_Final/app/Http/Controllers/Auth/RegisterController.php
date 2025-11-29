@@ -1,53 +1,36 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Http\Request;
 
-class RegisterController extends Controller
+class RegisterController extends BaseController
 {
-    
+    /**
+     * Enregistrer un nouvel utilisateur et créer un token (API + reCAPTCHA)
+     */
     public function register(Request $request)
     {
-        // 1) Validation de base
         $validator = Validator::make($request->all(), [
-            'name'                  => ['required', 'string', 'max:255'],
-            'email'                 => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password'              => ['required', 'string', 'min:8', 'confirmed'],
-            'g-recaptcha-response'  => ['required', 'string'],
+            'name'                 => ['required', 'string', 'max:255'],
+            'email'                => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'             => ['required', 'string', 'min:8', 'confirmed'],
+            'g-recaptcha-response' => ['required', 'string'],
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors'  => $validator->errors(),
-            ], 422);
+            return $this->validationErrorResponse($validator->errors());
         }
 
-        // 2) Vérification reCAPTCHA Google
-        $googleResponse = Http::asForm()->post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            [
-                'secret'   => env('RECAPTCHA_SECRET_KEY'),
-                'response' => $request['g-recaptcha-response'],
-            ]
-        );
-
-        $captchaData = $googleResponse->json();
-
-        if (!($captchaData['success'] ?? false)) {
-            return response()->json([
-                'message' => 'Échec de la vérification reCAPTCHA.',
-                'captcha' => $captchaData,
-            ], 400);
+        // Vérifier reCAPTCHA AVANT de créer l'utilisateur
+        if (!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
+            return $this->errorResponse('Captcha invalide', null, 400);
         }
 
-        // 3) Création du nouvel utilisateur
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
@@ -55,13 +38,75 @@ class RegisterController extends Controller
             'role'     => User::USER_ROLE,
         ]);
 
-        // 4) Création d’un token Sanctum pour SPA
+        // Créer un token pour l'utilisateur
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Inscription réussie.',
-            'user'    => $user,
-            'token'   => $token,
-        ], 201);
+        return $this->successResponse([
+            'user'       => $user,
+            'token'      => $token,
+            'token_type' => 'Bearer',
+        ], 'Utilisateur enregistré avec succès', 201);
+    }
+
+    /**
+     * Connecter un utilisateur et créer un token (API + reCAPTCHA)
+     */
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email'                => ['required', 'email'],
+            'password'             => ['required', 'string'],
+            'g-recaptcha-response' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationErrorResponse($validator->errors());
+        }
+
+        if (!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
+            return $this->errorResponse('Captcha invalide', null, 400);
+        }
+
+        // Vérifier les identifiants
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return $this->errorResponse('Identifiants invalides', null, 401);
+        }
+
+        // Créer un token pour l'utilisateur
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->successResponse([
+            'user'       => $user,
+            'token'      => $token,
+            'token_type' => 'Bearer',
+        ], 'Connexion réussie');
+    }
+
+    /**
+     * Déconnecter l'utilisateur (révoquer le token)
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return $this->successResponse(null, 'Déconnexion réussie');
+    }
+
+    /**
+     * Vérifier le token reCAPTCHA auprès de Google
+     */
+    public function validateCaptcha($token)
+    {
+        $response = Http::asForm()->post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            [
+                'secret'   => env('RECAPTCHA_SECRET_KEY'),
+                'response' => $token,
+            ]
+        )->json();
+
+        return $response['success'] ?? false;
     }
 }
