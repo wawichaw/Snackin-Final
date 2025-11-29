@@ -8,6 +8,8 @@
         <link rel="stylesheet" href="{{ asset('Contenu/css/style.css') }}">
         <link rel="stylesheet" href="{{ asset('Contenu/css/landing.css') }}">
         @vite(['resources/css/app.css', 'resources/js/app.jsx'])
+        <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+
     </head>
     <body class="antialiased">
 

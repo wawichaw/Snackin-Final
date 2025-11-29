@@ -1,11 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BiscuitController;
 use App\Http\Controllers\CommandeController;     
 use App\Http\Controllers\CommentaireController;
 use App\Http\Controllers\SaveurController;
 use App\Http\Controllers\LocalizationController;
+
 
 
 // Pages simples
@@ -74,7 +76,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Disable email verification for the app; register/login will work without verifying email
-Auth::routes();
+//Auth::routes();
+Auth::routes(['register' => false]);
 
 // Route home nécessite authentification (email verification disabled)
 Route::middleware(['auth'])->group(function () {
