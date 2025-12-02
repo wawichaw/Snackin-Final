@@ -1,22 +1,26 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
-export default function Login(){
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+export default function Login() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    async function submit(e){
+    async function submit(e) {
         e.preventDefault();
         setError(null);
-        try{
+        try {
             await login(email, password);
-            navigate('/');
-        }catch(err){
-            setError(err.response?.data?.message || err.message || 'Erreur de connexion');
+            navigate("/");
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                    err.message ||
+                    "Erreur de connexion"
+            );
         }
     }
 
@@ -28,11 +32,23 @@ export default function Login(){
                 <form onSubmit={submit}>
                     <div className="mb-3">
                         <label>Email</label>
-                        <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="form-control" required />
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="form-control"
+                            required
+                        />
                     </div>
                     <div className="mb-3">
                         <label>Mot de passe</label>
-                        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="form-control" required />
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="form-control"
+                            required
+                        />
                     </div>
                     <button className="btn primary">Se connecter</button>
                 </form>

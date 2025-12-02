@@ -28,7 +28,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/email/verify';
+protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -70,4 +70,20 @@ class RegisterController extends Controller
             'role' => User::USER_ROLE, // Assigner le rôle USER par défaut lors de l'inscription
         ]);
     }
+
+    /**
+ * Disable email verification redirect
+ */
+
+    //redirection
+protected function registered($request, $user)
+{
+
+//pour quil se connecte ensuite
+auth()->logout();
+    return redirect()
+    ->route('login')
+    ->with('status', 'Inscription réussie! Vous pouvez maintenant vous connecter.');
+}
+
 }

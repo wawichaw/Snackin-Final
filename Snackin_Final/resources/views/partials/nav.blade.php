@@ -21,10 +21,10 @@
             <ul class="navbar-nav ms-auto">
                                 @guest
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">{{ __('Se connecter') }}</a>
+                        <a class="nav-link" href="{{ url('/monopage#/login') }}">{{ __('Se connecter') }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('register') }}">{{ __('S\'inscrire') }}</a>
+                        <a class="nav-link" href="{{ url('/monopage#/register') }}">{{ __('S\'inscrire') }}</a>
                     </li>
                 @else
                     <li class="nav-item dropdown">
