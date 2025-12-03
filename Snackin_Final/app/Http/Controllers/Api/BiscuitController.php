@@ -42,6 +42,36 @@ class BiscuitController extends BaseController
         
         return $this->successResponse($biscuits);
     }
+        /**
+     * Autocomplétion pour les biscuits (titre / description)
+     */
+    public function autocomplete(Request $request)
+    {
+        $term = $request->get('term', '');
+
+        if (empty($term)) {
+            return response()->json([]);
+        }
+
+        $biscuits = Biscuit::with('saveur')
+            ->where(function ($q) use ($term) {
+                $q->where('nom_biscuit', 'LIKE', "%{$term}%")
+                  ->orWhere('description', 'LIKE', "%{$term}%");
+            })
+            ->limit(5)
+            ->get()
+            ->map(function ($biscuit) {
+                return [
+                    'id'         => $biscuit->id,
+                    'nom'        => $biscuit->nom_biscuit,
+                    'nom_saveur' => $biscuit->saveur ? $biscuit->saveur->nom_saveur : null,
+                ];
+            });
+
+        // SearchBar.jsx attend juste un tableau simple (resp.data)
+        return response()->json($biscuits, 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
 
     /**
      * Store a newly created resource in storage.

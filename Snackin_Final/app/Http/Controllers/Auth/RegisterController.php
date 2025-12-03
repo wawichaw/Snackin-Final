@@ -1,73 +1,112 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 
-class RegisterController extends Controller
+class RegisterController extends BaseController
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Register Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles the registration of new users as well as their
-    | validation and creation. By default this controller uses a trait to
-    | provide this functionality without requiring any additional code.
-    |
-    */
-
-    use RegistersUsers;
-
     /**
-     * Where to redirect users after registration.
-     *
-     * @var string
+     * Enregistrer un nouvel utilisateur et créer un token (API + reCAPTCHA)
      */
-    protected $redirectTo = '/email/verify';
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    public function register(Request $request)
     {
-        $this->middleware('guest');
+        $validator = Validator::make($request->all(), [
+            'name'                 => ['required', 'string', 'max:255'],
+            'email'                => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'             => ['required', 'string', 'min:8', 'confirmed'],
+            'g-recaptcha-response' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationErrorResponse($validator->errors());
+        }
+
+        // Vérifier reCAPTCHA AVANT de créer l'utilisateur
+        if (!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
+            return $this->errorResponse('Captcha invalide', null, 400);
+        }
+
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => User::USER_ROLE,
+        ]);
+
+        // Créer un token pour l'utilisateur
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->successResponse([
+            'user'       => $user,
+            'token'      => $token,
+            'token_type' => 'Bearer',
+        ], 'Utilisateur enregistré avec succès', 201);
     }
 
     /**
-     * Get a validator for an incoming registration request.
-     *
-     * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
+     * Connecter un utilisateur et créer un token (API + reCAPTCHA)
      */
-    protected function validator(array $data)
+    public function login(Request $request)
     {
-        return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        $validator = Validator::make($request->all(), [
+            'email'                => ['required', 'email'],
+            'password'             => ['required', 'string'],
+            'g-recaptcha-response' => ['required', 'string'],
         ]);
+
+        if ($validator->fails()) {
+            return $this->validationErrorResponse($validator->errors());
+        }
+
+        if (!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
+            return $this->errorResponse('Captcha invalide', null, 400);
+        }
+
+        // Vérifier les identifiants
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return $this->errorResponse('Identifiants invalides', null, 401);
+        }
+
+        // Créer un token pour l'utilisateur
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->successResponse([
+            'user'       => $user,
+            'token'      => $token,
+            'token_type' => 'Bearer',
+        ], 'Connexion réussie');
     }
 
     /**
-     * Create a new user instance after a valid registration.
-     *
-     * @param  array  $data
-     * @return \App\Models\User
+     * Déconnecter l'utilisateur (révoquer le token)
      */
-    protected function create(array $data)
+    public function logout(Request $request)
     {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'role' => User::USER_ROLE, // Assigner le rôle USER par défaut lors de l'inscription
-        ]);
+        $request->user()->currentAccessToken()->delete();
+
+        return $this->successResponse(null, 'Déconnexion réussie');
+    }
+
+    /**
+     * Vérifier le token reCAPTCHA auprès de Google
+     */
+    public function validateCaptcha($token)
+    {
+        $response = Http::asForm()->post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            [
+                'secret'   => env('RECAPTCHA_SECRET_KEY'),
+                'response' => $token,
+            ]
+        )->json();
+
+        return $response['success'] ?? false;
     }
 }

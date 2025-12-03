@@ -1,11 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BiscuitController;
 use App\Http\Controllers\Api\CommandeController;
 use App\Http\Controllers\Api\CommentaireController;
 use App\Http\Controllers\Api\SaveurController;
-use App\Http\Controllers\Api\RegisterController;
+
+use App\Http\Controllers\Api\RegisterController as ApiAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +20,7 @@ use App\Http\Controllers\Api\RegisterController;
 
 // Routes d'authentification (publiques - pas besoin de token)
 Route::post('/register', [RegisterController::class, 'register']);
-Route::post('/login', [RegisterController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login']);
 
 // Routes publiques (index et show accessibles sans authentification)
 Route::get('/biscuits', [BiscuitController::class, 'index']);
@@ -36,7 +36,7 @@ Route::get('/commentaires/{id}', [CommentaireController::class, 'show']);
 // Les actions store, update et destroy nécessitent l'authentification
 Route::middleware('auth:sanctum')->group(function () {
     // Déconnexion (nécessite d'être authentifié)
-    Route::post('/logout', [RegisterController::class, 'logout']);
+Route::post('/logout', [ApiAuthController::class, 'logout']);
     
     // Routes API avec ressources - actions protégées
     // apiResource crée automatiquement : store, show, update, destroy
@@ -44,6 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/biscuits', [BiscuitController::class, 'store']);
     Route::put('/biscuits/{id}', [BiscuitController::class, 'update']);
     Route::delete('/biscuits/{id}', [BiscuitController::class, 'destroy']);
+
+    // Autocomplétion pour les biscuits (SPA React)
+    Route::get('/biscuits/autocomplete', [BiscuitController::class, 'autocomplete']);
+
     
     // Commandes : toutes les actions nécessitent l'authentification
     Route::apiResource('commandes', CommandeController::class);

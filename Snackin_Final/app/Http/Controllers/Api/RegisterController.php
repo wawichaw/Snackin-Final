@@ -39,7 +39,11 @@ class RegisterController extends BaseController
             'token' => $token,
             'token_type' => 'Bearer'
         ], 'Utilisateur enregistré avec succès', 201);
+
+        if(!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
+            return response()->json(['message' => 'Captcha invalide'], 400);
     }
+}
 
     /**
      * Connecter un utilisateur et créer un token
@@ -80,6 +84,14 @@ class RegisterController extends BaseController
         $request->user()->currentAccessToken()->delete();
 
         return $this->successResponse(null, 'Déconnexion réussie');
+    }
+
+    public function validateCaptcha($token) {
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => env('RECAPTCHA_SECRET_KEY'),
+            'response' => $token,
+        ])->json();
+        return $response['success'] ?? false;
     }
 }
 
