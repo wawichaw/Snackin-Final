@@ -29,8 +29,8 @@
         <label class="form-label">Saveur</label>
         <select v-model="form.saveur_id" class="form-control" required>
           <option value="" disabled>Sélectionner une saveur…</option>
-          <option v-for="s in saveurs" :key="s.id" :value="s.id">
-            {{ (s.emoji || '🍪') + ' ' + capitalize(s.nom_saveur) }}
+          <option v-for="s in saveurs" :key="s.id" :value="String(s.id)">
+            {{ (s.emoji || '🍪') + ' ' + capitalize(s.nom_saveur || s.nom) }}
           </option>
         </select>
         <small class="text-muted">Choix imposé — pas de saisie libre.</small>
@@ -97,28 +97,105 @@ const submit = async () => {
   saving.value = true;
 
   try {
-    const formData = new FormData();
-    formData.append('nom_biscuit', form.nom_biscuit);
-    formData.append('prix', form.prix);
-    formData.append('description', form.description);
-    formData.append('saveur_id', form.saveur_id);
-    if (form.image) {
-      formData.append('image', form.image);
+    // Debug: afficher l'état du formulaire avant validation
+    console.log('=== ÉTAT DU FORMULAIRE AVANT ENVOI ===');
+    console.log('form.nom_biscuit:', form.nom_biscuit, 'type:', typeof form.nom_biscuit);
+    console.log('form.prix:', form.prix, 'type:', typeof form.prix);
+    console.log('form.description:', form.description, 'type:', typeof form.description);
+    console.log('form.saveur_id:', form.saveur_id, 'type:', typeof form.saveur_id);
+    console.log('form.image:', form.image);
+    console.log('=====================================');
+
+    // Validation côté client
+    if (!form.nom_biscuit || !form.nom_biscuit.trim()) {
+      errorMessages.value = ['Le nom du biscuit est requis'];
+      error.value = 'Erreur';
+      saving.value = false;
+      return;
     }
 
-    await api.put(`/biscuits/${route.params.id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    if (!form.prix || form.prix === '' || isNaN(parseFloat(form.prix))) {
+      errorMessages.value = ['Le prix est requis et doit être un nombre'];
+      error.value = 'Erreur';
+      saving.value = false;
+      return;
+    }
+
+    if (!form.saveur_id || form.saveur_id === '' || form.saveur_id === null || form.saveur_id === undefined) {
+      errorMessages.value = ['La saveur est requise'];
+      error.value = 'Erreur';
+      saving.value = false;
+      return;
+    }
+
+    // Convertir les valeurs
+    const prixNum = parseFloat(form.prix);
+    const saveurIdNum = parseInt(form.saveur_id, 10);
+    
+    // Vérifier que les conversions ont réussi
+    if (isNaN(prixNum) || prixNum <= 0) {
+      errorMessages.value = ['Le prix doit être un nombre valide supérieur à 0'];
+      error.value = 'Erreur';
+      saving.value = false;
+      return;
+    }
+    
+    if (isNaN(saveurIdNum) || saveurIdNum <= 0) {
+      errorMessages.value = ['La saveur doit être sélectionnée'];
+      error.value = 'Erreur';
+      saving.value = false;
+      return;
+    }
+
+    // Si pas d'image, on peut envoyer en JSON (plus fiable avec PUT)
+    // Sinon, on utilise FormData
+    if (!form.image) {
+      // Pas d'image, on peut utiliser JSON
+      const payload = {
+        nom_biscuit: form.nom_biscuit.trim(),
+        prix: prixNum,
+        description: form.description || '',
+        saveur_id: saveurIdNum,
+      };
+      
+      console.log('=== ENVOI EN JSON ===');
+      console.log('Payload:', payload);
+      console.log('===================');
+      
+      await api.put(`/biscuits/${route.params.id}`, payload);
+    } else {
+      // Avec image, on doit utiliser FormData
+      const formData = new FormData();
+      const nomBiscuit = form.nom_biscuit.trim();
+      const prixStr = String(prixNum);
+      const descriptionStr = form.description || '';
+      const saveurIdStr = String(saveurIdNum);
+      
+      formData.append('nom_biscuit', nomBiscuit);
+      formData.append('prix', prixStr);
+      formData.append('description', descriptionStr);
+      formData.append('saveur_id', saveurIdStr);
+      formData.append('image', form.image);
+
+      console.log('=== ENVOI EN FORMDATA (avec image) ===');
+      for (let pair of formData.entries()) {
+        console.log('FormData[' + pair[0] + '] =', pair[1], 'type:', typeof pair[1]);
+      }
+      console.log('=====================================');
+
+      await api.put(`/biscuits/${route.params.id}`, formData);
+    }
 
     router.push('/biscuits');
   } catch (e) {
+    console.error('Erreur mise à jour biscuit:', e);
     if (e.response?.data?.errors) {
       const errors = e.response.data.errors;
       errorMessages.value = Object.values(errors).flat();
+    } else if (e.response?.data?.message) {
+      errorMessages.value = [e.response.data.message];
     } else {
-      errorMessages.value = [e.response?.data?.message || 'Erreur lors de la mise à jour'];
+      errorMessages.value = ['Erreur lors de la mise à jour'];
     }
     error.value = 'Erreur';
   } finally {
@@ -133,17 +210,42 @@ onMounted(async () => {
       api.get('/saveurs'),
     ]);
     
+    // Extraire les données de la réponse
     biscuit.value = biscuitResp.data?.data || biscuitResp.data;
     saveurs.value = saveursResp.data?.data || saveursResp.data || [];
     
     if (biscuit.value) {
       form.nom_biscuit = biscuit.value.nom_biscuit || '';
-      form.prix = biscuit.value.prix || '';
+      form.prix = biscuit.value.prix ? String(biscuit.value.prix) : '';
       form.description = biscuit.value.description || '';
-      form.saveur_id = biscuit.value.saveur_id || '';
+      // S'assurer que saveur_id est bien récupéré (peut être dans saveur.id ou saveur_id)
+      const saveurId = biscuit.value.saveur_id 
+        ? biscuit.value.saveur_id 
+        : (biscuit.value.saveur?.id ? biscuit.value.saveur.id : null);
+      form.saveur_id = saveurId ? String(saveurId) : '';
+      
+      console.log('=== DONNÉES CHARGÉES ===');
+      console.log('Biscuit complet:', biscuit.value);
+      console.log('biscuit.value.saveur_id:', biscuit.value.saveur_id);
+      console.log('biscuit.value.saveur?.id:', biscuit.value.saveur?.id);
+      console.log('saveurId calculé:', saveurId);
+      console.log('Form initialisé:', { 
+        nom_biscuit: form.nom_biscuit,
+        prix: form.prix,
+        description: form.description,
+        saveur_id: form.saveur_id,
+        'saveur_id type': typeof form.saveur_id
+      });
+      console.log('Saveurs disponibles:', saveurs.value.map(s => ({ id: s.id, nom: s.nom_saveur || s.nom })));
+      console.log('========================');
+    } else {
+      console.error('Biscuit non trouvé');
+      error.value = 'Erreur';
+      errorMessages.value = ['Biscuit non trouvé'];
     }
   } catch (e) {
     console.error('Failed to fetch data', e);
+    console.error('Error response:', e.response?.data);
     error.value = 'Erreur';
     errorMessages.value = ['Impossible de charger les données'];
   } finally {

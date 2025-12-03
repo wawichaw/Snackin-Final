@@ -11,7 +11,11 @@
       <div class="card-body">Chargement des biscuits...</div>
     </div>
     <div v-else-if="!biscuits.length" class="empty-card">
-      <div class="card-body">Aucun biscuit pour l'instant. Revenez bientôt — nouvelle fournée en préparation!</div>
+      <div class="card-body">
+        <p>Aucun biscuit pour l'instant. Revenez bientôt — nouvelle fournée en préparation!</p>
+        <p style="font-size: 12px; color: #999; margin-top: 10px;">Debug: {{ biscuits.length }} biscuits chargés</p>
+        <p style="font-size: 12px; color: #999;">Vérifiez la console du navigateur (F12) pour plus de détails.</p>
+      </div>
     </div>
     <div v-else class="biscuits-grid">
       <div v-for="b in displayedBiscuits" :key="b.id" class="biscuit-card">
@@ -68,7 +72,6 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import axios from 'axios';
 import { RouterLink, useRouter } from 'vue-router';
 import { useAuth } from '../composables/auth';
 import api from '../axios';
@@ -141,15 +144,41 @@ const deleteBiscuit = async (id) => {
 
 onMounted(async () => {
   try {
-    const resp = await axios.get('/api/biscuits?limit=50');
-    const data = resp.data?.data || resp.data || [];
-    // S'assurer que les saveurs sont bien chargées
-    biscuits.value = data.map(b => ({
-      ...b,
-      saveur: b.saveur || (b.saveur_id ? { nom_saveur: 'Inconnue' } : null)
-    }));
+    const resp = await api.get('/biscuits?limit=20');
+    
+    // La réponse API devrait être { success: true, data: [...] }
+    let data = [];
+    
+    // Extraire les données de la réponse
+    if (resp.data?.data && Array.isArray(resp.data.data)) {
+      // Format standard: { success: true, data: [...] }
+      data = resp.data.data;
+    } else if (Array.isArray(resp.data)) {
+      // Format direct: [...]
+      data = resp.data;
+    } else if (resp.data && typeof resp.data === 'object') {
+      // Chercher un tableau dans l'objet
+      for (const key in resp.data) {
+        if (Array.isArray(resp.data[key])) {
+          data = resp.data[key];
+          break;
+        }
+      }
+    }
+    
+    // S'assurer que les saveurs sont bien chargées et que chaque biscuit a un id
+    biscuits.value = data
+      .filter(b => b && b.id) // Filtrer les éléments sans id
+      .map(b => ({
+        ...b,
+        saveur: b.saveur || (b.saveur_id ? { nom_saveur: 'Inconnue', emoji: '🍪' } : null)
+      }));
   } catch (e) {
-    console.error('Failed to fetch biscuits', e);
+    console.error('Erreur lors du chargement des biscuits:', e);
+    if (e.response) {
+      console.error('Réponse erreur:', e.response.data);
+      console.error('Status:', e.response.status);
+    }
     biscuits.value = [];
   } finally {
     loading.value = false;

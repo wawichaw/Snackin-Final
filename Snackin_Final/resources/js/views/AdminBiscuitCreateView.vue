@@ -84,28 +84,38 @@ const submit = async () => {
   loading.value = true;
 
   try {
+    if (!form.saveur_id) {
+      errorMessages.value = ['Veuillez sélectionner une saveur'];
+      error.value = 'Erreur';
+      loading.value = false;
+      return;
+    }
+
     const formData = new FormData();
     formData.append('nom_biscuit', form.nom_biscuit);
-    formData.append('prix', form.prix);
-    formData.append('description', form.description);
-    formData.append('saveur_id', form.saveur_id);
+    formData.append('prix', parseFloat(form.prix));
+    formData.append('description', form.description || '');
+    formData.append('saveur_id', parseInt(form.saveur_id));
     if (form.image) {
       formData.append('image', form.image);
     }
 
-    await api.post('/biscuits', formData, {
+    const resp = await api.post('/biscuits', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-
+    
     router.push('/biscuits');
   } catch (e) {
+    console.error('Erreur création biscuit:', e);
     if (e.response?.data?.errors) {
       const errors = e.response.data.errors;
       errorMessages.value = Object.values(errors).flat();
+    } else if (e.response?.data?.message) {
+      errorMessages.value = [e.response.data.message];
     } else {
-      errorMessages.value = [e.response?.data?.message || 'Erreur lors de la création'];
+      errorMessages.value = ['Erreur lors de la création. Vérifiez que vous êtes bien connecté en tant qu\'admin.'];
     }
     error.value = 'Erreur';
   } finally {

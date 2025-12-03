@@ -28,12 +28,11 @@
             <div v-if="showDropdown" class="user-dropdown">
               <RouterLink to="/admin" v-if="isAdmin">Tableau de bord</RouterLink>
               <RouterLink to="/admin/biscuits" v-if="isAdmin">Biscuits</RouterLink>
-              <RouterLink to="/admin/saveurs" v-if="isAdmin">Saveurs</RouterLink>
               <RouterLink to="/admin/commandes" v-if="isAdmin">Commandes</RouterLink>
               <RouterLink to="/admin/commentaires" v-if="isAdmin">Commentaires</RouterLink>
               <button type="button" @click="doLogout">Se déconnecter</button>
-            </div>
-          </div>
+        </div>
+      </div>
         </template>
       </div>
     </nav>

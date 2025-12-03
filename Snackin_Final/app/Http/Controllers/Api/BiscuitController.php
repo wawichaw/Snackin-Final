@@ -14,7 +14,7 @@ class BiscuitController extends BaseController
      */
     public function index(Request $request)
     {
-        $query = Biscuit::with('saveur');
+        $query = Biscuit::with('saveur')->whereNull('deleted_at');
 
         // Recherche par nom ou description
         if ($request->filled('search')) {
@@ -40,8 +40,8 @@ class BiscuitController extends BaseController
             $query->orderBy('created_at', 'desc');
         }
 
-        // Limiter les résultats (par défaut 50, max 100)
-        $limit = min($request->get('limit', 50), 100);
+        // Limiter les résultats (par défaut 20, max 100)
+        $limit = min($request->get('limit', 20), 100);
         $biscuits = $query->limit($limit)->get();
         
         return $this->successResponse($biscuits);
@@ -127,13 +127,29 @@ class BiscuitController extends BaseController
             return $this->notFoundResponse('Biscuit non trouvé');
         }
 
-        $validated = $request->validate([
-            'nom_biscuit' => 'required',
-            'prix' => 'required|numeric',
-            'description' => 'nullable',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-            'saveur_id' => 'required|exists:saveurs,id',
+        // Debug: afficher ce qui est reçu
+        \Log::info('Update biscuit request:', [
+            'id' => $id,
+            'all' => $request->all(),
+            'nom_biscuit' => $request->input('nom_biscuit'),
+            'prix' => $request->input('prix'),
+            'description' => $request->input('description'),
+            'saveur_id' => $request->input('saveur_id'),
+            'has_image' => $request->hasFile('image'),
         ]);
+
+        // FormData envoie tout en string, donc on valide comme string puis on convertit
+        $validated = $request->validate([
+            'nom_biscuit' => 'required|string|max:255',
+            'prix' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'saveur_id' => 'required|integer|exists:saveurs,id',
+        ]);
+        
+        // S'assurer que saveur_id est bien un entier
+        $validated['saveur_id'] = (int) $validated['saveur_id'];
+        $validated['prix'] = (float) $validated['prix'];
 
         // Si nouvelle image
         if($request->hasFile('image')) {

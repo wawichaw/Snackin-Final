@@ -28,15 +28,15 @@
       </div>
       
       <div class="card-sweet">
-        <div class="card-body">
+    <div class="card-body">
           <h2>Technologie</h2>
           <p>
             Cette interface utilise Vue 3, Vue Router et Vite. Les vues se trouvent dans 
             <code>resources/js/views</code> et la navigation est déclarée dans <code>resources/js/router/index.js</code>.
-          </p>
+      </p>
           <p>
             Tout le front monopage est maintenant en Vue pour une expérience utilisateur optimale.
-          </p>
+      </p>
         </div>
       </div>
     </div>

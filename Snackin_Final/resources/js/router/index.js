@@ -11,7 +11,6 @@ import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import AdminDashboardView from '../views/AdminDashboardView.vue';
 import AdminBiscuitsView from '../views/AdminBiscuitsView.vue';
-import AdminSaveursView from '../views/AdminSaveursView.vue';
 import AdminCommandesView from '../views/AdminCommandesView.vue';
 import AdminCommentairesView from '../views/AdminCommentairesView.vue';
 import AdminBiscuitCreateView from '../views/AdminBiscuitCreateView.vue';
@@ -32,7 +31,6 @@ const routes = [
     { path: '/admin/biscuits', name: 'admin.biscuits', component: AdminBiscuitsView, meta: { requiresAuth: true, adminOnly: true } },
     { path: '/admin/biscuits/create', name: 'admin.biscuits.create', component: AdminBiscuitCreateView, meta: { requiresAuth: true, adminOnly: true } },
     { path: '/admin/biscuits/:id/edit', name: 'admin.biscuits.edit', component: AdminBiscuitEditView, meta: { requiresAuth: true, adminOnly: true } },
-    { path: '/admin/saveurs', name: 'admin.saveurs', component: AdminSaveursView, meta: { requiresAuth: true, adminOnly: true } },
     { path: '/admin/commandes', name: 'admin.commandes', component: AdminCommandesView, meta: { requiresAuth: true, adminOnly: true } },
     { path: '/admin/commentaires', name: 'admin.commentaires', component: AdminCommentairesView, meta: { requiresAuth: true, adminOnly: true } },
     { path: '/:pathMatch(.*)*', name: 'fallback', component: MessageView, props: { title: 'Page Vue', message: 'Route non trouvee, mais la SPA Vue est montee.' } },

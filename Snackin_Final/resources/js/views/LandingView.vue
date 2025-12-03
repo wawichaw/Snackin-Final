@@ -14,7 +14,6 @@
           <div class="cta-row">
             <RouterLink to="/commander" class="btn primary">Commander</RouterLink>
             <RouterLink to="/biscuits" class="btn">Découvrez notre sélection</RouterLink>
-            <RouterLink v-if="isAdmin" to="/admin/saveurs" class="btn outline">Saveurs</RouterLink>
           </div>
         </div>
 
@@ -43,11 +42,6 @@
           <h3>Partager son avis</h3>
           <p>Découvrez ce que pensent nos clients et partagez votre expérience.</p>
           <p><RouterLink to="/commentaires" class="btn outline">Voir les commentaires</RouterLink></p>
-        </div>
-        <div v-if="isAdmin" class="card">
-          <h3>Saveurs du moment</h3>
-          <p>Ajoute/édite les saveurs (admin) ou inspire-toi pour ta commande.</p>
-          <p><RouterLink to="/admin/saveurs" class="btn outline">Saveurs</RouterLink></p>
         </div>
       </div>
     </section>
