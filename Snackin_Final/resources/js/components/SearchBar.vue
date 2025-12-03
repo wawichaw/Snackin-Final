@@ -16,7 +16,7 @@
         class="search-result-item"
         @click="handleSelect(item)"
       >
-        {{ item.titre || item.name || item.nom }}
+        {{ item.nom || item.nom_biscuit || item.name || item.titre }}
       </li>
     </ul>
   </div>
@@ -24,24 +24,44 @@
 
 <script setup>
 import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import api from '../axios';
 
+const router = useRouter();
 const term = ref('');
 const results = ref([]);
 let timeoutId = null;
 
 watch(term, (value) => {
   clearTimeout(timeoutId);
-  if (!value) {
+  if (!value || value.length < 2) {
     results.value = [];
     return;
   }
   timeoutId = setTimeout(async () => {
     try {
       const resp = await api.get('/biscuits/autocomplete', { params: { term: value } });
-      results.value = resp.data || [];
+      console.log('Réponse autocomplete:', resp.data);
+      // Gérer différentes structures de réponse
+      let data = [];
+      if (resp.data?.data && Array.isArray(resp.data.data)) {
+        data = resp.data.data;
+      } else if (Array.isArray(resp.data)) {
+        data = resp.data;
+      } else if (resp.data && typeof resp.data === 'object') {
+        // Chercher un tableau dans l'objet
+        for (const key in resp.data) {
+          if (Array.isArray(resp.data[key])) {
+            data = resp.data[key];
+            break;
+          }
+        }
+      }
+      results.value = data.filter(item => item && item.id);
+      console.log('Résultats autocomplete:', results.value.length);
     } catch (e) {
       console.error('Erreur autocomplete', e);
+      console.error('Erreur response:', e.response?.data);
       results.value = [];
     }
   }, 300);
@@ -50,7 +70,12 @@ watch(term, (value) => {
 const handleSelect = (item) => {
   console.log('Selection autocompletion', item);
   results.value = [];
-  term.value = item.titre || item.name || item.nom || '';
+  term.value = '';
+  // Rediriger vers la page du biscuit
+  const biscuitId = item.id;
+  if (biscuitId) {
+    router.push(`/biscuits/${biscuitId}`);
+  }
 };
 </script>
 

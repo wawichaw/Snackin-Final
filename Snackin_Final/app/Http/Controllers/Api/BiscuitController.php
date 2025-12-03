@@ -58,6 +58,7 @@ class BiscuitController extends BaseController
         }
 
         $biscuits = Biscuit::with('saveur')
+            ->whereNull('deleted_at') // Exclure les soft-deleted
             ->where(function ($q) use ($term) {
                 $q->where('nom_biscuit', 'LIKE', "%{$term}%")
                   ->orWhere('description', 'LIKE', "%{$term}%");
@@ -68,6 +69,7 @@ class BiscuitController extends BaseController
                 return [
                     'id'         => $biscuit->id,
                     'nom'        => $biscuit->nom_biscuit,
+                    'nom_biscuit' => $biscuit->nom_biscuit, // Ajouter aussi nom_biscuit pour compatibilité
                     'nom_saveur' => $biscuit->saveur ? $biscuit->saveur->nom_saveur : null,
                 ];
             });

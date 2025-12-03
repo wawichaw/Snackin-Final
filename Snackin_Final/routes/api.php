@@ -24,6 +24,8 @@ Route::post('/login', [ApiAuthController::class, 'login']);
 
 // Routes publiques (index et show accessibles sans authentification)
 Route::get('/biscuits', [BiscuitController::class, 'index']);
+// Autocomplétion pour les biscuits (doit être avant /biscuits/{id} pour éviter les conflits)
+Route::get('/biscuits/autocomplete', [BiscuitController::class, 'autocomplete']);
 Route::get('/biscuits/{id}', [BiscuitController::class, 'show']);
 
 Route::get('/saveurs', [SaveurController::class, 'index']);
@@ -44,9 +46,6 @@ Route::post('/logout', [ApiAuthController::class, 'logout']);
     Route::post('/biscuits', [BiscuitController::class, 'store']);
     Route::put('/biscuits/{id}', [BiscuitController::class, 'update']);
     Route::delete('/biscuits/{id}', [BiscuitController::class, 'destroy']);
-
-    // Autocomplétion pour les biscuits (SPA React)
-    Route::get('/biscuits/autocomplete', [BiscuitController::class, 'autocomplete']);
 
     
     // Commandes : toutes les actions nécessitent l'authentification

@@ -11,7 +11,7 @@
         <div class="snk-spacer"></div>
         <RouterLink to="/">Accueil</RouterLink>
         <RouterLink to="/biscuits">Biscuits</RouterLink>
-        <RouterLink to="/commander">Commander</RouterLink>
+        <RouterLink v-if="!isAdmin" to="/commander">Commander</RouterLink>
         <RouterLink to="/commentaires">Commentaires</RouterLink>
         <RouterLink to="/about">À propos</RouterLink>
 
@@ -22,17 +22,18 @@
           <RouterLink to="/register">S'inscrire</RouterLink>
         </template>
         <template v-else>
-          <RouterLink v-if="isAdmin" to="/admin">Admin</RouterLink>
           <div class="user-menu" @mouseenter="showDropdown = true" @mouseleave="showDropdown = false">
             <span class="user-name">{{ user.name }}</span>
             <div v-if="showDropdown" class="user-dropdown">
-              <RouterLink to="/admin" v-if="isAdmin">Tableau de bord</RouterLink>
               <RouterLink to="/admin/biscuits" v-if="isAdmin">Biscuits</RouterLink>
               <RouterLink to="/admin/commandes" v-if="isAdmin">Commandes</RouterLink>
               <RouterLink to="/admin/commentaires" v-if="isAdmin">Commentaires</RouterLink>
-              <button type="button" @click="doLogout">Se déconnecter</button>
-        </div>
-      </div>
+              <button type="button" @click="doLogout" class="logout-btn">Se déconnecter</button>
+            </div>
+          </div>
+          <button type="button" @click="doLogout" class="btn-logout-nav" title="Se déconnecter">
+            🚪 Déconnexion
+          </button>
         </template>
       </div>
     </nav>
@@ -54,8 +55,8 @@ const route = useRoute();
 const { user, logout } = useAuth();
 const isAdmin = computed(() => !!(user.value && (user.value.is_admin || user.value.role === 'admin')));
 const showSearch = computed(() => {
-  const searchRoutes = ['/biscuits', '/'];
-  return searchRoutes.includes(route.path);
+  // SearchBar uniquement sur la page biscuits
+  return route.path === '/biscuits' || route.path === '/biscuits/';
 });
 const showDropdown = ref(false);
 
@@ -215,6 +216,32 @@ const getImageUrl = (path) => {
   transform: translateX(4px);
   color: var(--cherry);
   font-weight: 700;
+}
+
+.btn-logout-nav {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #ffe9ef 0%, #fff1f7 100%);
+  border: 1px solid rgba(160, 22, 43, 0.2);
+  border-radius: 999px;
+  color: var(--cherry);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+.btn-logout-nav:hover {
+  background: linear-gradient(135deg, #ffd6e0 0%, #ffe9ef 100%);
+  border-color: var(--cherry);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(160, 22, 43, 0.15);
+}
+
+.btn-logout-nav:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(160, 22, 43, 0.1);
 }
 
 .main-content {

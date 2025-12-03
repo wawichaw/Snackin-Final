@@ -12,7 +12,8 @@
           <p>Gérez vos biscuits, découvrez les saveurs et passez vos commandes en 2 clics.</p>
 
           <div class="cta-row">
-            <RouterLink to="/commander" class="btn primary">Commander</RouterLink>
+            <RouterLink v-if="!isAdmin" to="/commander" class="btn primary">Commander</RouterLink>
+            <RouterLink v-if="isAdmin" to="/admin/commandes" class="btn primary">Gérer les commandes</RouterLink>
             <RouterLink to="/biscuits" class="btn">Découvrez notre sélection</RouterLink>
           </div>
         </div>
@@ -28,10 +29,15 @@
 
     <section class="section">
       <div class="grid">
-        <div class="card">
+        <div v-if="!isAdmin" class="card">
           <h3>Commander en douceur</h3>
           <p>Choisis la taille (4, 6, 12) et compose ta boîte.<br>Tu récupères au point de ramassage.</p>
           <p><RouterLink to="/commander" class="btn primary">Je commande</RouterLink></p>
+        </div>
+        <div v-if="isAdmin" class="card">
+          <h3>Gérer les commandes</h3>
+          <p>Consultez, modifiez et suivez toutes les commandes de vos clients.</p>
+          <p><RouterLink to="/admin/commandes" class="btn primary">Gérer les commandes</RouterLink></p>
         </div>
         <div class="card">
           <h3>Découvrir le menu</h3>

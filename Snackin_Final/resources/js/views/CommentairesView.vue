@@ -17,8 +17,16 @@
             <label>Biscuit</label>
             <select v-model="form.biscuit_id" required>
               <option value="">Choisissez un biscuit</option>
-              <option v-for="b in biscuits" :key="b.id" :value="b.id">{{ b.nom_biscuit || b.nom || b.name }}</option>
+              <option v-for="b in biscuits" :key="b.id" :value="b.id">
+                {{ b.nom_biscuit || b.nom || b.name || `Biscuit #${b.id}` }}
+              </option>
             </select>
+            <small v-if="biscuits.length === 0" style="color: #999; font-size: 12px;">
+              Chargement des biscuits...
+            </small>
+            <small v-else style="color: #666; font-size: 12px;">
+              {{ biscuits.length }} biscuit(s) disponible(s)
+            </small>
           </div>
 
           <div v-if="isGuest" class="two">
@@ -73,14 +81,14 @@
         <div v-else class="stack">
           <article v-for="c in displayedComments" :key="c.id" class="comment-card">
             <div class="comment-top">
-              <div class="avatar">{{ (c.nom_affiche || c.nom_visiteur || c.nom || 'A').toString().charAt(0).toUpperCase() }}</div>
+              <div class="avatar">{{ (c.nom_affiche || c.auteur_affiche || c.nom_visiteur || c.nom || 'A').toString().charAt(0).toUpperCase() }}</div>
               <div>
-                <h3>{{ c.nom_affiche || c.nom_visiteur || c.nom || 'Anonyme' }}</h3>
+                <h3>{{ c.nom_affiche || c.auteur_affiche || c.nom_visiteur || c.nom || 'Anonyme' }}</h3>
                 <p class="muted">Sur {{ c.biscuit?.nom_biscuit || c.biscuit?.nom || 'un biscuit' }}</p>
               </div>
               <div v-if="c.note" class="rating">{{ '★'.repeat(Number(c.note)) }}</div>
             </div>
-            <p class="comment-body">{{ c.texte || c.message || c.content }}</p>
+            <p class="comment-body">{{ c.texte || c.contenu || c.message || c.content }}</p>
             <div class="comment-meta">
               <span>{{ formatDate(c.created_at) }}</span>
             </div>
@@ -106,6 +114,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import axios from 'axios';
+import api from '../axios';
 import { useAuth } from '../composables/auth';
 
 const comments = ref([]);
@@ -130,9 +139,28 @@ const isGuest = computed(() => !user.value);
 
 const fetchBiscuits = async () => {
   try {
-    const resp = await axios.get('/api/biscuits');
-    biscuits.value = resp.data || [];
+    const resp = await api.get('/biscuits?limit=50');
+    // Gérer différentes structures de réponse
+    let data = [];
+    if (resp.data?.data && Array.isArray(resp.data.data)) {
+      data = resp.data.data;
+    } else if (Array.isArray(resp.data)) {
+      data = resp.data;
+    } else if (resp.data && typeof resp.data === 'object') {
+      // Chercher un tableau dans l'objet
+      for (const key in resp.data) {
+        if (Array.isArray(resp.data[key])) {
+          data = resp.data[key];
+          break;
+        }
+      }
+    }
+    biscuits.value = data.filter(b => b && b.id);
+    console.log('Biscuits chargés pour commentaires:', biscuits.value.length);
+    console.log('Premier biscuit:', biscuits.value[0]);
   } catch (e) {
+    console.error('Erreur chargement biscuits:', e);
+    console.error('Erreur response:', e.response?.data);
     biscuits.value = [];
   }
 };
@@ -140,9 +168,33 @@ const fetchBiscuits = async () => {
 const fetchComments = async () => {
   loadingList.value = true;
   try {
-    const resp = await axios.get('/api/commentaires?limit=20');
-    comments.value = resp.data?.data || resp.data || [];
+    const resp = await api.get('/commentaires?limit=20');
+    // Gérer différentes structures de réponse
+    let data = [];
+    if (resp.data?.data && Array.isArray(resp.data.data)) {
+      data = resp.data.data;
+    } else if (Array.isArray(resp.data)) {
+      data = resp.data;
+    } else if (resp.data && typeof resp.data === 'object') {
+      // Chercher un tableau dans l'objet
+      for (const key in resp.data) {
+        if (Array.isArray(resp.data[key])) {
+          data = resp.data[key];
+          break;
+        }
+      }
+    }
+    comments.value = data.filter(c => c && c.id);
+    // Trier par date décroissante pour avoir les plus récents en premier
+    comments.value.sort((a, b) => {
+      const dateA = new Date(a.created_at || 0);
+      const dateB = new Date(b.created_at || 0);
+      return dateB - dateA;
+    });
+    console.log('Commentaires chargés:', comments.value.length);
+    console.log('Premier commentaire:', comments.value[0]);
   } catch (e) {
+    console.error('Erreur chargement commentaires:', e);
     comments.value = [];
   } finally {
     loadingList.value = false;
@@ -157,27 +209,42 @@ const submit = async () => {
     return;
   }
   const payload = {
-    biscuit_id: form.biscuit_id,
-    texte: form.texte,
-    note: form.note,
+    biscuit_id: parseInt(form.biscuit_id),
+    texte: form.texte.trim(),
+    note: form.note ? parseInt(form.note) : null,
   };
   if (isGuest.value) {
-    payload.nom_visiteur = form.nom_visiteur;
-    payload.email_visiteur = form.email_visiteur;
+    payload.nom_visiteur = form.nom_visiteur?.trim() || '';
+    payload.email_visiteur = form.email_visiteur?.trim() || '';
   }
   sending.value = true;
   try {
-    await axios.post('/commentaires', payload);
-    success.value = 'Commentaire publie.';
+    const resp = await api.post('/commentaires', payload);
+    console.log('Commentaire créé:', resp.data);
+    success.value = 'Commentaire publié avec succès !';
+    // Réinitialiser le formulaire
+    form.biscuit_id = '';
     form.texte = '';
     form.note = '';
     if (isGuest.value) {
       form.nom_visiteur = '';
       form.email_visiteur = '';
     }
-    fetchComments();
+    // Recharger immédiatement les commentaires
+    await fetchComments();
+    // Garder le message de succès pendant 3 secondes
+    setTimeout(() => {
+      success.value = '';
+    }, 3000);
   } catch (e) {
-    error.value = e.response?.data?.message || 'Echec de publication.';
+    console.error('Erreur publication commentaire:', e);
+    console.error('Erreur response:', e.response?.data);
+    if (e.response?.data?.errors) {
+      const errors = e.response.data.errors;
+      error.value = Object.values(errors).flat().join(', ');
+    } else {
+      error.value = e.response?.data?.message || 'Échec de publication.';
+    }
   } finally {
     sending.value = false;
   }

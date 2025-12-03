@@ -9,7 +9,6 @@ import CommentairesView from '../views/CommentairesView.vue';
 import CommandeView from '../views/CommandeView.vue';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
-import AdminDashboardView from '../views/AdminDashboardView.vue';
 import AdminBiscuitsView from '../views/AdminBiscuitsView.vue';
 import AdminCommandesView from '../views/AdminCommandesView.vue';
 import AdminCommentairesView from '../views/AdminCommentairesView.vue';
@@ -27,7 +26,6 @@ const routes = [
     { path: '/commander', name: 'commander', component: CommandeView, meta: { requiresAuth: true } },
     { path: '/login', name: 'login', component: LoginView },
     { path: '/register', name: 'register', component: RegisterView },
-    { path: '/admin', name: 'admin', component: AdminDashboardView, meta: { requiresAuth: true, adminOnly: true } },
     { path: '/admin/biscuits', name: 'admin.biscuits', component: AdminBiscuitsView, meta: { requiresAuth: true, adminOnly: true } },
     { path: '/admin/biscuits/create', name: 'admin.biscuits.create', component: AdminBiscuitCreateView, meta: { requiresAuth: true, adminOnly: true } },
     { path: '/admin/biscuits/:id/edit', name: 'admin.biscuits.edit', component: AdminBiscuitEditView, meta: { requiresAuth: true, adminOnly: true } },
@@ -51,6 +49,10 @@ router.beforeEach((to, from, next) => {
     }
     if (to.meta?.adminOnly && !isAdmin) {
         return next({ name: 'home', query: { forbidden: '1' } });
+    }
+    // Rediriger les admins qui essaient de commander vers la gestion des commandes
+    if (to.name === 'commander' && isAdmin) {
+        return next({ name: 'admin.commandes' });
     }
     if ((to.name === 'login' || to.name === 'register') && isAuth) {
         return next({ name: 'home' });
