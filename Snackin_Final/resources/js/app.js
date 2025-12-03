@@ -1,12 +1,8 @@
 import './bootstrap';
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
 
-// React entry point - mount the SPA
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
-
-const el = document.getElementById('app');
-if (el) {
-	const root = createRoot(el);
-	root.render(<App />);
-}
+const app = createApp(App);
+app.use(router);
+app.mount('#app');

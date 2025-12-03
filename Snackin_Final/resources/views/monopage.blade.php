@@ -3,13 +3,13 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Snackin - SPA (React)</title>
+        <title>Snackin - SPA (Vue)</title>
         <!-- include main site CSS so SPA components follow the same theme used by Blade views -->
         <link rel="stylesheet" href="{{ asset('Contenu/css/style.css') }}">
         <link rel="stylesheet" href="{{ asset('Contenu/css/landing.css') }}">
-        @vite(['resources/css/app.css', 'resources/js/app.jsx'])
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="antialiased">
+    <body class="antialiased vue-spa">
 
         @php
             // prepare auth payload for the client
