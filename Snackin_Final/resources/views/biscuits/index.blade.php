@@ -76,9 +76,12 @@
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>{{ __('Nos Biscuits') }}</h1>
-    @if($showAdmin)
-      <a href="{{ route('biscuits.create') }}" class="btn btn-primary">{{ __('+ Ajouter') }}</a>
-    @endif
+@if($showAdmin)
+  {{-- Lien vers le formulaire React d’ajout de biscuit --}}
+  <a href="{{ url('/monopage#/admin/biscuits') }}" class="btn btn-primary">
+    {{ __('+ Ajouter') }}
+  </a>
+@endif
   </div>
 
   {{-- RECHERCHE ET FILTRES --}}

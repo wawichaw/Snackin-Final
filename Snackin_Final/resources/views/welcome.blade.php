@@ -37,15 +37,16 @@
             <div class="snk-spacer"></div>
             <a href="{{ route('biscuits.index') }}">{{ __('Nos biscuits') }}</a>
             @auth
-                @if(Auth::user()->is_admin || Auth::user()->role === 'ADMIN')
-                    <a href="{{ route('commandes.index') }}">{{ __('Commandes (admin)') }}</a>
-                    <a href="{{ route('saveurs.index') }}">{{ __('Saveurs') }}</a>
-                @else
-                    <a href="{{ route('commandes.create') }}">{{ __('Commander') }}</a>
-                    <a href="{{ route('mes.commandes') }}">{{ __('Mes commandes') }}</a>
-                @endif
+              @if(Auth::check() && (Auth::user()->is_admin || Auth::user()->role === 'ADMIN'))
+             {{-- Lien vers la SPA React admin commandes --}}
+                <a href="{{ url('/monopage#/admin/commandes') }}">{{ __('Commandes (admin)') }}</a>
+             @else
+             {{-- Lien vers la page React "passer une commande" --}}
+                <a href="{{ url('/monopage#/commandes/create') }}">{{ __('Commander') }}</a>
+             @endif
+
             @else
-                <a href="{{ route('commandes.create') }}">{{ __('Commander') }}</a>
+                 <a href="{{ url('/monopage#/commandes/create') }}">{{ __('Commander') }}</a>
             @endauth
             @auth
                 @if(Auth::user()->is_admin || Auth::user()->role === 'ADMIN')
@@ -92,7 +93,7 @@
                 <p>{{ __('Gérez vos biscuits, découvrez les saveurs et passez vos commandes en 2 clics.') }}</p>
 
                 <div class="cta-row">
-                    <a class="btn primary" href="{{ route('commandes.create') }}">{{ __('Commander') }}</a>
+                    <a class="btn primary" href="{{ url('/monopage#/commandes/create') }}">{{ __('Commander') }}</a>
                     <a class="btn" href="{{ route('biscuits.index') }}">{{ __('Découvrez notre sélection') }}</a>
                     @auth
                         @if(Auth::user()->is_admin || Auth::user()->role === 'ADMIN')
@@ -131,7 +132,7 @@
             <div class="card">
                 <h3>{{ __('Commander en douceur')}}</h3>
                 <p>{{ __('Choisis la taille (4, 6, 12) et compose ta boîte.')}} <br>{{__('Tu récupères au point de ramassage.')}}</p>
-                <p><a class="btn primary" href="{{ route('commandes.create') }}">{{ __('Je commande') }}</a></p>
+<p><a class="btn primary" href="{{ url('/monopage#/commandes/create') }}">{{ __('Je commande') }}</a></p>
             </div>
             <div class="card">
                 <h3>{{ __('Découvrir le menu')}}</h3>

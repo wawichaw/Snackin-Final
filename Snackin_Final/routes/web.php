@@ -14,7 +14,8 @@ Route::view('/about', 'about')->name('about');
 // Route pour l'autocomplétion de la recherche (DOIT être AVANT resource)
 Route::get('/biscuits/search', [BiscuitController::class, 'search'])->name('biscuits.search');
 // Biscuits (CRUD)
-Route::resource('biscuits', BiscuitController::class);
+// Biscuits (CRUD côté Laravel : seulement index + show)
+Route::resource('biscuits', BiscuitController::class)->only(['index', 'show']);
 // Alias /biscuit -> index (si tu veux garder l’ancien lien)
 Route::get('/biscuit', [BiscuitController::class, 'index'])->name('biscuit.index');
 
