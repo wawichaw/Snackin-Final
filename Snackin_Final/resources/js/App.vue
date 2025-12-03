@@ -103,14 +103,32 @@ const getImageUrl = (path) => {
   color: #a0162b;
   text-decoration: none;
   font-weight: 600;
-  padding: 8px 12px;
-  border-radius: 10px;
-  transition: all 0.2s ease;
+  padding: 10px 16px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.snk-nav a::before {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--cherry);
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
 }
 
 .snk-nav a:hover {
-  background: #fff7f1;
-  box-shadow: 0 10px 30px rgba(160, 22, 43, 0.12);
+  background: linear-gradient(135deg, #fff7f1 0%, #fff9f5 100%);
+  box-shadow: 0 4px 12px rgba(160, 22, 43, 0.15);
+  transform: translateY(-2px);
+}
+
+.snk-nav a:hover::before {
+  width: 80%;
 }
 
 .snk-spacer {
@@ -164,15 +182,18 @@ const getImageUrl = (path) => {
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 8px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(160, 22, 43, 0.12);
-  border: 1px solid rgba(160, 22, 43, .08);
-  min-width: 200px;
+  margin-top: 10px;
+  background: linear-gradient(180deg, #fff 0%, #fff8f9 100%);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(160, 22, 43, 0.18);
+  border: 2px solid rgba(160, 22, 43, .1);
+  min-width: 220px;
   display: flex;
   flex-direction: column;
   padding: 8px 0;
+  animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(10px);
+  z-index: 1000;
 }
 
 .user-dropdown a,
@@ -190,7 +211,10 @@ const getImageUrl = (path) => {
 
 .user-dropdown a:hover,
 .user-dropdown button:hover {
-  background: #ffe9ef;
+  background: linear-gradient(135deg, #ffe9ef 0%, #fff1f7 100%);
+  transform: translateX(4px);
+  color: var(--cherry);
+  font-weight: 700;
 }
 
 .main-content {

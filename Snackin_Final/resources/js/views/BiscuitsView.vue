@@ -187,6 +187,17 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .biscuits-page {
   max-width: 1100px;
   margin: 34px auto;
@@ -243,34 +254,68 @@ onMounted(async () => {
   overflow: visible;
   display: flex;
   flex-direction: column;
-  border-radius: 18px;
-  border: 1px solid #f7c6de;
-  background: #fff;
-  box-shadow: 0 10px 24px rgba(236, 72, 153, .12);
-  transition: transform .15s ease, box-shadow .2s ease;
+  border-radius: 20px;
+  border: 2px solid #f7c6de;
+  background: linear-gradient(180deg, #fff 0%, #fff8f9 100%);
+  box-shadow: 0 12px 28px rgba(236, 72, 153, .15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeIn 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.biscuit-card:nth-child(1) { animation-delay: 0.1s; }
+.biscuit-card:nth-child(2) { animation-delay: 0.2s; }
+.biscuit-card:nth-child(3) { animation-delay: 0.3s; }
+.biscuit-card:nth-child(4) { animation-delay: 0.4s; }
+
+.biscuit-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 20px;
+  padding: 2px;
+  background: linear-gradient(135deg, #ffd6e5, #ffe7ee, #ffffff, #ffd6e5);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .biscuit-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 36px rgba(236, 72, 153, .16);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 48px rgba(236, 72, 153, .25);
+  border-color: #ec4899;
+}
+
+.biscuit-card:hover::before {
+  opacity: 0.6;
 }
 
 .flavor-emoji {
   position: absolute;
   right: 12px;
-  top: -16px;
-  width: 46px;
-  height: 46px;
+  top: -18px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: 1px solid #f7c6de;
+  background: linear-gradient(135deg, #fff 0%, #fff8f9 100%);
+  border: 2px solid #f7c6de;
   border-radius: 999px;
-  box-shadow: 0 8px 20px rgba(236, 72, 153, .18);
-  font-size: 22px;
+  box-shadow: 0 10px 24px rgba(236, 72, 153, .25);
+  font-size: 24px;
   transform: rotate(-8deg);
   z-index: 5;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.biscuit-card:hover .flavor-emoji {
+  transform: rotate(8deg) scale(1.15);
+  box-shadow: 0 12px 32px rgba(236, 72, 153, .35);
+  border-color: #ec4899;
 }
 
 .biscuit-image {
@@ -278,11 +323,16 @@ onMounted(async () => {
   overflow: hidden;
   border-radius: 16px;
   margin: 10px 10px 0;
-  height: 160px;
-  background: #ffeaf2;
+  height: 180px;
+  background: linear-gradient(135deg, #ffeaf2 0%, #fff1f7 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.biscuit-card:hover .biscuit-image {
+  transform: scale(1.05);
 }
 
 .biscuit-image img {
@@ -316,14 +366,22 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
-  background: #fff;
-  border: 1px solid #f7c6de;
+  background: linear-gradient(135deg, #fff 0%, #fff8f9 100%);
+  border: 1.5px solid #f7c6de;
   color: #694256;
   font-weight: 700;
-  margin: 6px 0;
+  margin: 8px 0;
   font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(236, 72, 153, .1);
+}
+
+.biscuit-card:hover .saveur-chip {
+  transform: scale(1.05);
+  border-color: #ec4899;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, .2);
 }
 
 .saveur-chip .emoji {
@@ -402,19 +460,43 @@ onMounted(async () => {
 .btn-show-more {
   background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
   color: white;
-  padding: 12px 24px;
+  padding: 14px 28px;
   border: none;
-  border-radius: 25px;
+  border-radius: 999px;
   font-size: 16px;
   font-weight: 700;
+  box-shadow: 0 6px 20px rgba(236, 72, 153, .35);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
-  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-show-more::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-show-more:hover::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn-show-more:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(236, 72, 153, .45);
+}
+
+.btn-show-more:active {
+  transform: translateY(-1px);
 }
 
 @media (max-width: 900px) {

@@ -238,19 +238,43 @@ const submit = async () => {
 
 <style scoped>
 .register-container {
-  background: linear-gradient(135deg, #fff1f7 0%, #ffe6ee 100%);
+  background: linear-gradient(135deg, #fff1f7 0%, #ffe6ee 50%, #fff9f5 100%);
   min-height: calc(100vh - 80px);
-  padding: 40px 0;
+  padding: 60px 0;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.register-container::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -20%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse 4s ease-in-out infinite;
 }
 
 .register-card {
-  max-width: 500px;
+  max-width: 520px;
   margin: 0 auto;
-  padding: 40px;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.15);
+  padding: 48px;
+  background: linear-gradient(180deg, #fff 0%, #fff8f9 100%);
+  border-radius: 28px;
+  box-shadow: 0 20px 60px rgba(236, 72, 153, 0.2);
   border: 2px solid #f7c6de;
+  position: relative;
+  z-index: 1;
+  animation: fadeIn 0.8s ease-out 0.2s both;
+  transition: all 0.3s ease;
+}
+
+.register-card:hover {
+  box-shadow: 0 24px 72px rgba(236, 72, 153, 0.25);
+  transform: translateY(-4px);
 }
 
 .register-title {
@@ -287,16 +311,25 @@ const submit = async () => {
 
 .form-input {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 14px 18px;
+  border: 2px solid rgba(160, 22, 43, 0.15);
+  border-radius: 12px;
   font-size: 16px;
+  background: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #1f0f15;
 }
 
 .form-input:focus {
   outline: none;
   border-color: #ec4899;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.15);
+  transform: translateY(-1px);
+  background: #fff;
+}
+
+.form-input::placeholder {
+  color: rgba(31, 15, 21, 0.4);
 }
 
 .recaptcha-container {
@@ -320,25 +353,50 @@ const submit = async () => {
 .btn-submit {
   background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
   color: white;
-  padding: 15px 40px;
+  padding: 16px 48px;
   border: none;
-  border-radius: 25px;
-  font-size: 16px;
+  border-radius: 999px;
+  font-size: 17px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-submit::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-submit:hover::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(236, 72, 153, 0.5);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .btn-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 .form-links {

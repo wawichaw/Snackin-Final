@@ -160,36 +160,59 @@ onMounted(async () => {
 }
 
 .biscuit-edit-card {
-  background: white;
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.15);
+  background: linear-gradient(180deg, #fff 0%, #fff8f9 100%);
+  border-radius: 24px;
+  padding: 48px;
+  box-shadow: 0 20px 60px rgba(236, 72, 153, 0.2);
   border: 2px solid #f7c6de;
+  animation: fadeIn 0.6s ease-out;
+  transition: all 0.3s ease;
+}
+
+.biscuit-edit-card:hover {
+  box-shadow: 0 24px 72px rgba(236, 72, 153, 0.25);
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  animation: fadeIn 0.5s ease-out;
 }
+
+.form-group:nth-child(1) { animation-delay: 0.1s; }
+.form-group:nth-child(2) { animation-delay: 0.2s; }
+.form-group:nth-child(3) { animation-delay: 0.3s; }
+.form-group:nth-child(4) { animation-delay: 0.4s; }
+.form-group:nth-child(5) { animation-delay: 0.5s; }
 
 .form-label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+  margin-bottom: 8px;
+  font-weight: 700;
   color: #2a1620;
+  font-size: 15px;
 }
 
 .form-control {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 14px 18px;
+  border: 2px solid rgba(160, 22, 43, 0.15);
+  border-radius: 12px;
   font-size: 16px;
+  background: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #1f0f15;
 }
 
 .form-control:focus {
   outline: none;
   border-color: #ec4899;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.15);
+  transform: translateY(-1px);
+  background: #fff;
+}
+
+.form-control::placeholder {
+  color: rgba(31, 15, 21, 0.4);
 }
 
 .text-muted {

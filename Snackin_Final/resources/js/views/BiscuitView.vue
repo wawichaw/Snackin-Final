@@ -70,52 +70,90 @@ watch(() => route.params.id, (id) => load(id));
 
 .biscuit-detail {
   background: linear-gradient(180deg, #fff8f9 0%, #fff 100%);
-  border: 1px solid rgba(160, 22, 43, .08);
-  border-radius: 22px;
-  padding: 40px;
-  box-shadow: 0 12px 30px rgba(160, 22, 43, 0.08);
+  border: 2px solid rgba(160, 22, 43, .1);
+  border-radius: 28px;
+  padding: 48px;
+  box-shadow: 0 20px 60px rgba(160, 22, 43, 0.12);
+  animation: fadeIn 0.6s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.biscuit-detail::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse 6s ease-in-out infinite;
 }
 
 .biscuit-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .biscuit-header h1 {
-  font-size: clamp(28px, 4vw, 42px);
+  font-size: clamp(32px, 5vw, 48px);
   color: #a0162b;
   margin: 0;
+  font-weight: 900;
+  background: linear-gradient(135deg, #a0162b 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .price-badge {
-  background: #a0162b;
+  background: linear-gradient(135deg, #a0162b 0%, #c91e3a 100%);
   color: #fff;
-  padding: 12px 20px;
+  padding: 14px 24px;
   border-radius: 999px;
-  font-weight: 700;
-  font-size: 18px;
-  box-shadow: 0 8px 16px rgba(160, 22, 43, .18);
+  font-weight: 800;
+  font-size: 20px;
+  box-shadow: 0 10px 28px rgba(160, 22, 43, .3);
+  transition: all 0.3s ease;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.price-badge:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 36px rgba(160, 22, 43, .4);
+  animation: none;
 }
 
 .biscuit-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
+  position: relative;
+  z-index: 1;
 }
 
 .biscuit-description {
-  font-size: 18px;
-  line-height: 1.6;
-  color: rgba(43, 29, 29, 0.8);
+  font-size: 19px;
+  line-height: 1.8;
+  color: rgba(43, 29, 29, 0.85);
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(160, 22, 43, 0.1);
+  box-shadow: 0 4px 12px rgba(160, 22, 43, 0.08);
 }
 
 .biscuit-actions {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
 </style>
