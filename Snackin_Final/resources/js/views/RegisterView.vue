@@ -9,7 +9,7 @@
         </ul>
       </div>
 
-      <form @submit.prevent="submit" class="register-form">
+      <form @submit.prevent="handleSubmit" class="register-form">
         <div class="form-group">
           <label for="name">Nom</label>
           <input 
@@ -49,7 +49,7 @@
           <input 
             id="password-confirm" 
             type="password" 
-            v-model="passwordConfirmation" 
+            v-model="c_password" 
             required 
             class="form-input"
           />
@@ -83,26 +83,27 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
-import { useAuth } from '../composables/auth';
+import axios from 'axios';
 
 const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
+// Variables réactives (équivalent à data() en Vue 2)
 const name = ref('');
 const email = ref('');
 const password = ref('');
-const passwordConfirmation = ref('');
-const error = ref('');
+const c_password = ref(''); // c_password comme dans le document
+const error = ref(null);
 const loading = ref(false);
 const recaptchaRef = ref(null);
 const widgetId = ref(null);
 const recaptchaToken = ref('');
 
-const { register } = useAuth();
 const router = useRouter();
 const route = useRoute();
 
 const renderRecaptcha = () => {
-  if (!SITE_KEY) {
+  if (!SITE_KEY || SITE_KEY.trim() === '') {
+    console.warn('reCAPTCHA non configuré: VITE_RECAPTCHA_SITE_KEY est vide ou non définie');
     recaptchaToken.value = 'no-captcha';
     return;
   }
@@ -114,17 +115,39 @@ const renderRecaptcha = () => {
       sitekey: SITE_KEY,
       callback: (token) => {
         recaptchaToken.value = token;
+        error.value = null; // Effacer l'erreur si le captcha fonctionne
       },
-      'error-callback': () => {
+      'error-callback': (errorCode) => {
         recaptchaToken.value = '';
-        console.error('reCAPTCHA error');
+        console.error('reCAPTCHA error:', errorCode);
+        // Messages d'erreur plus informatifs
+        if (errorCode === 'invalid-site-key' || !errorCode) {
+          // "Invalid site key" est souvent retourné sans code d'erreur
+          const keyStatus = SITE_KEY ? 'Définie mais invalide' : 'Non définie';
+          console.warn('reCAPTCHA Site Key:', keyStatus);
+          console.warn('Valeur de la clé:', SITE_KEY ? `${SITE_KEY.substring(0, 10)}...` : 'Non définie');
+          error.value = 'Clé reCAPTCHA invalide. Vérifiez que :\n' +
+            '1. La clé dans .env (VITE_RECAPTCHA_SITE_KEY) est correcte\n' +
+            '2. Le domaine (localhost, 127.0.0.1) est autorisé dans Google reCAPTCHA\n' +
+            '3. Vous avez redémarré le serveur Vite après modification de .env\n\n' +
+            'Pour désactiver reCAPTCHA en développement, supprimez VITE_RECAPTCHA_SITE_KEY de .env';
+        } else if (errorCode === 'network-error') {
+          error.value = 'Erreur réseau avec reCAPTCHA. Vérifiez votre connexion internet.';
+        } else {
+          error.value = `Erreur reCAPTCHA (code: ${errorCode || 'inconnu'}). Vérifiez que votre domaine est autorisé dans la configuration Google reCAPTCHA.`;
+        }
+        // Permettre de continuer sans reCAPTCHA si erreur (pour le développement)
+        recaptchaToken.value = 'no-captcha';
       },
       'expired-callback': () => {
         recaptchaToken.value = '';
+        console.warn('reCAPTCHA token expired');
       },
     });
   } catch (e) {
     console.error('Failed to render reCAPTCHA:', e);
+    error.value = 'Impossible de charger reCAPTCHA. Vérifiez votre configuration ou votre connexion.';
+    recaptchaToken.value = 'no-captcha'; // Permettre de continuer
   }
 };
 
@@ -156,7 +179,8 @@ const checkRecaptchaLoaded = () => {
 };
 
 onMounted(() => {
-  if (!SITE_KEY) {
+  if (!SITE_KEY || SITE_KEY.trim() === '') {
+    console.warn('reCAPTCHA non configuré: VITE_RECAPTCHA_SITE_KEY est vide ou non définie');
     recaptchaToken.value = 'no-captcha';
     return;
   }
@@ -215,25 +239,64 @@ const resetRecaptcha = () => {
   }
 };
 
-const submit = async () => {
-  error.value = '';
-  if (SITE_KEY && !recaptchaToken.value) {
-    error.value = 'Veuillez cocher "Je ne suis pas un robot".';
-    return;
-  }
+// Méthode handleSubmit conforme au document
+const handleSubmit = async () => {
+  error.value = null;
   loading.value = true;
+  
   try {
-    await register(name.value, email.value, password.value, passwordConfirmation.value, recaptchaToken.value);
-    resetRecaptcha();
-    const redirect = route.query.redirect || '/';
-    router.push(redirect);
-  } catch (e) {
-    error.value = e.response?.data?.message || e.response?.data?.errors || e.message || "Erreur a l'inscription.";
-    resetRecaptcha();
+    // a. Vérification du captcha : bloquer l'envoi sans validation reCAPTCHA (comme dans le document)
+    // Mais permettre 'no-captcha' si reCAPTCHA a échoué (pour le développement)
+    if (SITE_KEY && !recaptchaToken.value) {
+      error.value = 'Veuillez cocher "Je ne suis pas un robot"';
+      loading.value = false;
+      return;
+    }
+    // Si reCAPTCHA a échoué mais qu'on a 'no-captcha', on peut continuer (pour le développement)
+    if (SITE_KEY && recaptchaToken.value === 'no-captcha') {
+      console.warn('reCAPTCHA non disponible, tentative d\'inscription sans');
+    }
+    
+    // b. Vérification du cookie CSRF qui protège les requêtes POST (obligatoire pour Sanctum)
+    await axios.get('/sanctum/csrf-cookie', { withCredentials: true });
+    
+    // c. Envoi du formulaire
+    const payload = {
+      name: name.value,
+      email: email.value,
+      password: password.value,
+      c_password: c_password.value, // Utiliser c_password comme dans le document
+      password_confirmation: c_password.value, // Laravel attend aussi password_confirmation
+    };
+    
+    // Ajouter reCAPTCHA si disponible
+    if (SITE_KEY && recaptchaToken.value && recaptchaToken.value !== 'no-captcha') {
+      payload['g-recaptcha-response'] = recaptchaToken.value;
+    }
+    
+    const res = await axios.post('/api/register', payload, { withCredentials: true });
+    
+    // d. Si l'API renvoie success, l'utilisateur sera redirigé vers /login
+    if (res.data && (res.data.success || res.data.data)) {
+      resetRecaptcha(); // e. Réinitialisation du captcha
+      router.push('/login');
+    } else {
+      error.value = "Erreur lors de l'inscription";
+      resetRecaptcha(); // e. Réinitialisation du captcha si erreur
+    }
+  } catch (err) {
+    // Gestion des erreurs
+    if (err.response && err.response.status === 422) {
+      // Erreurs de validation Laravel
+      error.value = Object.values(err.response.data.errors || {}).flat().join(' ');
+    } else {
+      error.value = err.response?.data?.message || "Erreur lors de l'inscription";
+    }
+    resetRecaptcha(); // e. Réinitialisation du captcha : L'utilisateur doit re-valider le captcha si erreur
   } finally {
     loading.value = false;
   }
-  };
+};
 </script>
 
 <style scoped>

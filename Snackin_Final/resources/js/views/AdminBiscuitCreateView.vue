@@ -84,6 +84,15 @@ const submit = async () => {
   loading.value = true;
 
   try {
+    // 1. Vérifier le token (comme dans le document AddArticle)
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert('Veuillez vous connecter d\'abord.');
+      router.push('/login');
+      loading.value = false;
+      return;
+    }
+
     if (!form.saveur_id) {
       errorMessages.value = ['Veuillez sélectionner une saveur'];
       error.value = 'Erreur';
@@ -91,6 +100,7 @@ const submit = async () => {
       return;
     }
 
+    // 2. Préparer FormData (obligatoire pour upload de fichiers)
     const formData = new FormData();
     formData.append('nom_biscuit', form.nom_biscuit);
     formData.append('prix', parseFloat(form.prix));
@@ -100,13 +110,22 @@ const submit = async () => {
       formData.append('image', form.image);
     }
 
+    // 3. Envoyer la requête API avec le token
+    // Le token est ajouté automatiquement par l'interceptor d'axios.js
     const resp = await api.post('/biscuits', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`, // Explicit comme dans le document
       },
     });
     
-    router.push('/biscuits');
+    // 4. Si succès, rediriger
+    if (resp.data && (resp.data.success || resp.data.data)) {
+      alert('Biscuit ajouté avec succès !');
+      router.push('/biscuits');
+    } else {
+      error.value = 'Erreur lors de la création';
+    }
   } catch (e) {
     console.error('Erreur création biscuit:', e);
     if (e.response?.data?.errors) {

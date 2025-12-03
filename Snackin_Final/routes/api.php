@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\BiscuitController;
 use App\Http\Controllers\Api\CommandeController;
 use App\Http\Controllers\Api\CommentaireController;
 use App\Http\Controllers\Api\SaveurController;
+use App\Http\Controllers\Api\ArticleController;
 
 use App\Http\Controllers\Api\RegisterController as ApiAuthController;
 
@@ -34,6 +35,9 @@ Route::get('/saveurs/{id}', [SaveurController::class, 'show']);
 Route::get('/commentaires', [CommentaireController::class, 'index']);
 Route::get('/commentaires/{id}', [CommentaireController::class, 'show']);
 
+Route::get('/articles', [ArticleController::class, 'index']);
+Route::get('/articles/{id}', [ArticleController::class, 'show']);
+
 // Routes protégées par authentification (nécessitent un token)
 // Les actions store, update et destroy nécessitent l'authentification
 Route::middleware('auth:sanctum')->group(function () {
@@ -59,5 +63,8 @@ Route::post('/logout', [ApiAuthController::class, 'logout']);
     Route::post('/saveurs', [SaveurController::class, 'store']);
     Route::put('/saveurs/{id}', [SaveurController::class, 'update']);
     Route::delete('/saveurs/{id}', [SaveurController::class, 'destroy']);
+    
+    // Articles : nécessitent l'authentification
+    Route::post('/articles', [ArticleController::class, 'store']);
 });
 

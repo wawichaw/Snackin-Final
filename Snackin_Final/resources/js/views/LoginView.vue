@@ -86,8 +86,9 @@ const route = useRoute();
 const { login } = useAuth();
 
 const renderRecaptcha = () => {
-  if (!SITE_KEY) {
-    // Pas de clé reCAPTCHA, on peut se connecter sans
+  // Vérifier que la clé est valide (non vide et non undefined)
+  if (!SITE_KEY || SITE_KEY.trim() === '' || SITE_KEY === 'undefined') {
+    console.warn('reCAPTCHA non configuré: VITE_RECAPTCHA_SITE_KEY est vide ou non définie');
     recaptchaToken.value = 'no-captcha';
     return;
   }
@@ -99,17 +100,39 @@ const renderRecaptcha = () => {
       sitekey: SITE_KEY,
       callback: (token) => {
         recaptchaToken.value = token;
+        error.value = ''; // Effacer l'erreur si le captcha fonctionne
       },
-      'error-callback': () => {
+      'error-callback': (errorCode) => {
         recaptchaToken.value = '';
-        console.error('reCAPTCHA error');
+        console.error('reCAPTCHA error:', errorCode);
+        // Messages d'erreur plus informatifs
+        if (errorCode === 'invalid-site-key' || !errorCode) {
+          // "Invalid site key" est souvent retourné sans code d'erreur
+          const keyStatus = SITE_KEY ? 'Définie mais invalide' : 'Non définie';
+          console.warn('reCAPTCHA Site Key:', keyStatus);
+          console.warn('Valeur de la clé:', SITE_KEY ? `${SITE_KEY.substring(0, 10)}...` : 'Non définie');
+          error.value = 'Clé reCAPTCHA invalide. Vérifiez que :\n' +
+            '1. La clé dans .env (VITE_RECAPTCHA_SITE_KEY) est correcte\n' +
+            '2. Le domaine (localhost, 127.0.0.1) est autorisé dans Google reCAPTCHA\n' +
+            '3. Vous avez redémarré le serveur Vite après modification de .env\n\n' +
+            'Pour désactiver reCAPTCHA en développement, supprimez VITE_RECAPTCHA_SITE_KEY de .env';
+        } else if (errorCode === 'network-error') {
+          error.value = 'Erreur réseau avec reCAPTCHA. Vérifiez votre connexion internet.';
+        } else {
+          error.value = `Erreur reCAPTCHA (code: ${errorCode || 'inconnu'}). Vous pouvez continuer sans si le problème persiste.`;
+        }
+        // Permettre de continuer sans reCAPTCHA si erreur
+        recaptchaToken.value = 'no-captcha';
       },
       'expired-callback': () => {
         recaptchaToken.value = '';
+        console.warn('reCAPTCHA token expired');
       },
     });
   } catch (e) {
     console.error('Failed to render reCAPTCHA:', e);
+    error.value = 'Impossible de charger reCAPTCHA. Vérifiez votre configuration ou votre connexion.';
+    recaptchaToken.value = 'no-captcha'; // Permettre de continuer
   }
 };
 
@@ -143,7 +166,9 @@ const checkRecaptchaLoaded = () => {
 };
 
 onMounted(() => {
-  if (!SITE_KEY) {
+  // Vérifier que la clé est valide (non vide et non undefined)
+  if (!SITE_KEY || SITE_KEY.trim() === '' || SITE_KEY === 'undefined') {
+    console.warn('reCAPTCHA non configuré: VITE_RECAPTCHA_SITE_KEY est vide ou non définie dans .env');
     recaptchaToken.value = 'no-captcha';
     return;
   }
@@ -209,13 +234,18 @@ const resetRecaptcha = () => {
 
 const submit = async () => {
   error.value = '';
+  // Vérifier reCAPTCHA seulement si configuré et si le token n'est pas 'no-captcha'
   if (SITE_KEY && !recaptchaToken.value) {
     error.value = 'Veuillez cocher "Je ne suis pas un robot".';
     return;
   }
+  // Si reCAPTCHA a échoué mais qu'on a 'no-captcha', on peut continuer
+  if (SITE_KEY && recaptchaToken.value === 'no-captcha') {
+    console.warn('reCAPTCHA non disponible, tentative de connexion sans');
+  }
   loading.value = true;
   try {
-    await login(email.value, password.value, recaptchaToken.value);
+    await login(email.value, password.value, recaptchaToken.value || 'no-captcha');
     resetRecaptcha();
     const redirect = route.query.redirect || '/';
     router.push(redirect);

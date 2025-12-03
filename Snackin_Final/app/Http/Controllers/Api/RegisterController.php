@@ -14,29 +14,36 @@ class RegisterController extends BaseController
      */
     public function register(Request $request)
     {
+        // 1. Validation reCAPTCHA AVANT la création de l'utilisateur (comme dans le document)
+        if ($request->has('g-recaptcha-response') && $request->input('g-recaptcha-response')) {
+            if(!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
+                return response()->json(['message' => 'Captcha invalide'], 400);
+            }
+        } elseif (!empty(env('RECAPTCHA_SECRET_KEY'))) {
+            // Si reCAPTCHA est configuré mais pas fourni, rejeter
+            return response()->json(['message' => 'Le reCAPTCHA est requis'], 400);
+        }
+
+        // 2. Validation des données du formulaire
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'g-recaptcha-response' => ['nullable', 'string'], // Ajout dans la validation
         ]);
 
         if ($validator->fails()) {
             return $this->validationErrorResponse($validator->errors());
         }
 
+        // 3. Création de l'utilisateur
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => User::USER_ROLE,
+            'is_admin' => false,
         ]);
-
-        // Validation reCAPTCHA si fourni
-        if ($request->has('g-recaptcha-response') && $request->input('g-recaptcha-response')) {
-            if(!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
-                return response()->json(['message' => 'Captcha invalide'], 400);
-            }
-        }
 
         // Créer un token pour l'utilisateur
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -58,9 +65,17 @@ class RegisterController extends BaseController
      */
     public function login(Request $request)
     {
+        // 1. Validation reCAPTCHA si fourni (comme dans le document)
+        if ($request->has('g-recaptcha-response') && $request->input('g-recaptcha-response')) {
+            if(!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
+                return response()->json(['message' => 'Captcha invalide'], 400);
+            }
+        }
+
         $validator = Validator::make($request->all(), [
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+            'g-recaptcha-response' => ['nullable', 'string'], // Ajout dans la validation
         ]);
 
         if ($validator->fails()) {
