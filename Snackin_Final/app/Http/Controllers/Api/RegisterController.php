@@ -31,18 +31,26 @@ class RegisterController extends BaseController
             'role' => User::USER_ROLE,
         ]);
 
+        // Validation reCAPTCHA si fourni
+        if ($request->has('g-recaptcha-response') && $request->input('g-recaptcha-response')) {
+            if(!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
+                return response()->json(['message' => 'Captcha invalide'], 400);
+            }
+        }
+
         // Créer un token pour l'utilisateur
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // S'assurer que is_admin et role sont inclus dans la réponse
+        $userData = $user->only(['id', 'name', 'email', 'is_admin', 'role']);
+        $userData['is_admin'] = (bool) $user->is_admin;
+        $userData['role'] = $user->role;
+
         return $this->successResponse([
-            'user' => $user,
+            'user' => $userData,
             'token' => $token,
             'token_type' => 'Bearer'
         ], 'Utilisateur enregistré avec succès', 201);
-
-        if(!$this->validateCaptcha($request->input('g-recaptcha-response'))) {
-            return response()->json(['message' => 'Captcha invalide'], 400);
-    }
 }
 
     /**
@@ -69,8 +77,13 @@ class RegisterController extends BaseController
         // Créer un token pour l'utilisateur
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // S'assurer que is_admin et role sont inclus dans la réponse
+        $userData = $user->only(['id', 'name', 'email', 'is_admin', 'role']);
+        $userData['is_admin'] = (bool) $user->is_admin;
+        $userData['role'] = $user->role;
+
         return $this->successResponse([
-            'user' => $user,
+            'user' => $userData,
             'token' => $token,
             'token_type' => 'Bearer'
         ], 'Connexion réussie');
@@ -87,11 +100,19 @@ class RegisterController extends BaseController
     }
 
     public function validateCaptcha($token) {
-        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => env('RECAPTCHA_SECRET_KEY'),
-            'response' => $token,
-        ])->json();
-        return $response['success'] ?? false;
+        if (empty($token) || empty(env('RECAPTCHA_SECRET_KEY'))) {
+            return true; // Si pas de clé configurée, on accepte
+        }
+        try {
+            $response = \Illuminate\Support\Facades\Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => env('RECAPTCHA_SECRET_KEY'),
+                'response' => $token,
+            ])->json();
+            return $response['success'] ?? false;
+        } catch (\Exception $e) {
+            // En cas d'erreur, on accepte pour ne pas bloquer
+            return true;
+        }
     }
 }
 

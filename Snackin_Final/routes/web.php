@@ -8,24 +8,24 @@ use App\Http\Controllers\CommentaireController;
 use App\Http\Controllers\SaveurController;
 use App\Http\Controllers\LocalizationController;
 
-//  Page racine = SPA React
+// Entrée principale de la SPA Vue
 Route::view('/', 'monopage')->name('home');
 
-// (si tu utilises encore une page Blade "about")
+// (exemple Blade statique si besoin)
 Route::view('/about', 'about')->name('about');
 
-//  AutocomplÃ©tion (backend classique)
+// Autocomplétion (backend classique)
 Route::get('/biscuits/search', [BiscuitController::class, 'search'])->name('biscuits.search');
 
-//  Routes multipage classiques (si ton prof les utilise encore)
+// Routes multipage classiques (si encore utilisées côté prof)
 Route::resource('biscuits', BiscuitController::class);
 Route::get('/biscuit', [BiscuitController::class, 'index'])->name('biscuit.index');
 
-//  Commentaires publics Blade
+// Commentaires publics Blade
 Route::get('/commentaires', [CommentaireController::class, 'public'])->name('commentaires.public');
 Route::post('/commentaires', [CommentaireController::class, 'store'])->name('commentaires.store');
 
-//  CRUD complet pour commentaires en â€œmode adminâ€ Blade
+// CRUD complet pour commentaires en mode admin (Blade)
 Route::get('/commentaires-crud', [CommentaireController::class, 'index'])->name('commentaires.index');
 Route::get('/commentaires-crud/create', [CommentaireController::class, 'create'])->name('commentaires.create');
 Route::get('/commentaires-crud/{commentaire}', [CommentaireController::class, 'show'])->name('commentaires.show');
@@ -33,12 +33,12 @@ Route::get('/commentaires-crud/{commentaire}/edit', [CommentaireController::clas
 Route::put('/commentaires-crud/{commentaire}', [CommentaireController::class, 'update'])->name('commentaires.update');
 Route::delete('/commentaires-crud/{commentaire}', [CommentaireController::class, 'destroy'])->name('commentaires.destroy');
 
-//  Commentaires imbriquÃ©s sous un biscuit (admin)
+// Commentaires imbriqués sous un biscuit (admin)
 Route::get('/biscuits/{biscuit}/commentaires',        [CommentaireController::class, 'index'])->name('biscuits.commentaires.index');
 Route::get('/biscuits/{biscuit}/commentaires/create', [CommentaireController::class, 'create'])->name('biscuits.commentaires.create');
 Route::post('/biscuits/{biscuit}/commentaires',       [CommentaireController::class, 'store'])->name('biscuits.commentaires.store');
 
-//  Sections protÃ©gÃ©es (admin / commandes) â€“ besoin dâ€™Ãªtre connectÃ©
+// Sections protégées (admin / commandes) -> besoin d'être connecté
 Route::middleware(['auth'])->group(function () {
 
     // Commentaires admin
@@ -69,13 +69,14 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Auth::routes();
-//  Langue
+
+// Langue
 Route::get('/lang/{locale}', [LocalizationController::class, 'index'])->name('lang.switch');
 Route::get('/debug-lang', function () {
     return view('debug-lang');
 })->name('debug.lang');
 
-//  Catch-all SPA : tout le reste => React (monopage.blade)
+// Catch-all SPA : tout le reste => Vue (monopage.blade)
 Route::get('/{any}', function () {
     return view('monopage');
 })->where('any', '.*');

@@ -36,9 +36,13 @@ class BiscuitController extends BaseController
         // Tri par prix
         if ($request->filled('prix')) {
             $query->orderBy('prix', $request->prix);
+        } else {
+            $query->orderBy('created_at', 'desc');
         }
 
-        $biscuits = $query->get();
+        // Limiter les résultats (par défaut 50, max 100)
+        $limit = min($request->get('limit', 50), 100);
+        $biscuits = $query->limit($limit)->get();
         
         return $this->successResponse($biscuits);
     }

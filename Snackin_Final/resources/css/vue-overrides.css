@@ -1,3 +1,5 @@
+/* Styles améliorés pour correspondre aux Blade */
+
 .vue-shell {
     min-height: 100vh;
 }
@@ -47,4 +49,147 @@
     gap: 12px;
     flex-wrap: wrap;
     margin-top: 8px;
+}
+
+/* Amélioration des styles pour correspondre aux Blade */
+.main-content {
+    padding: 20px;
+}
+
+/* Styles pour les cartes améliorées */
+.card-sweet {
+    position: relative;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #fff8f9 0%, #fff 100%);
+    border: 1px solid rgba(160, 22, 43, .08);
+    box-shadow: 0 12px 30px rgba(160, 22, 43, 0.08);
+    overflow: hidden;
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    isolation: isolate;
+}
+
+.card-sweet::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 22px;
+    padding: 1px;
+    background: linear-gradient(135deg, #ffd6e5 0%, #ffe7ee 40%, #ffffff 60%, #ffd6e5 100%);
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: .6;
+}
+
+.card-sweet::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 60% at -10% 0%, rgba(255, 255, 255, .7), transparent 60%);
+    mix-blend-mode: lighten;
+    opacity: 0;
+    transition: opacity .18s ease;
+    pointer-events: none;
+}
+
+.card-sweet:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 18px 40px rgba(160, 22, 43, 0.12);
+    filter: saturate(1.03);
+}
+
+.card-sweet:hover::after {
+    opacity: .6;
+}
+
+.card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px 0 14px;
+}
+
+.card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(100% 100% at 30% 30%, #fff 0%, #fff7f1 60%, #ffe4ea 100%);
+    border: 1px solid rgba(160, 22, 43, .12);
+    box-shadow: 0 8px 18px rgba(160, 22, 43, 0.10);
+    font-size: 24px;
+}
+
+.ribbon {
+    position: relative;
+    background: #a0162b;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    box-shadow: 0 8px 16px rgba(160, 22, 43, .18);
+}
+
+.card-body {
+    padding: 14px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.card-body h3 {
+    margin: 4px 0 0;
+    color: #a0162b;
+}
+
+.card-body p {
+    margin: 0;
+    color: rgba(43, 29, 29, 0.8);
+}
+
+.card-cta {
+    margin-top: 6px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, .06);
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(160, 22, 43, 0.12);
+    text-decoration: none;
+    color: #2b1d1d;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn.primary {
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+}
+
+.btn.outline {
+    background: transparent;
+    border-color: #a0162b;
+    color: #a0162b;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 35px rgba(160, 22, 43, 0.15);
+}
+
+.btn.primary:hover {
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
 }

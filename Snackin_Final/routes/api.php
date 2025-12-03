@@ -19,8 +19,8 @@ use App\Http\Controllers\Api\RegisterController as ApiAuthController;
 */
 
 // Routes d'authentification (publiques - pas besoin de token)
-Route::post('/register', [RegisterController::class, 'register']);
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/register', [ApiAuthController::class, 'register']);
+Route::post('/login', [ApiAuthController::class, 'login']);
 
 // Routes publiques (index et show accessibles sans authentification)
 Route::get('/biscuits', [BiscuitController::class, 'index']);

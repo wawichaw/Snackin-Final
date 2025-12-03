@@ -31,7 +31,9 @@ class CommentaireController extends BaseController
             $query->where('modere', true);
         }
 
-        $commentaires = $query->orderByDesc('created_at')->get();
+        // Limiter les résultats (par défaut 20, max 100)
+        $limit = min($request->get('limit', 20), 100);
+        $commentaires = $query->orderByDesc('created_at')->limit($limit)->get();
 
         return $this->successResponse($commentaires);
     }
